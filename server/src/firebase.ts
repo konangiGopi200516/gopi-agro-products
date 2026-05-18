@@ -1,9 +1,10 @@
 import * as admin from 'firebase-admin';
-import path from 'path';
+import { createRequire } from 'module';
 
 // Using the provided service account key if available
 try {
-  const serviceAccount = require(path.resolve(__dirname, '../firebase-service-account.json'));
+  const require = createRequire(import.meta.url);
+  const serviceAccount = require('../../firebase-service-account.json');
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
     databaseURL: 'https://farmer-friendly-web-app-default-rtdb.firebaseio.com'
