@@ -32,7 +32,6 @@ const initMailer = async () => {
   }
 };
 
-initMailer().catch(console.error);
 
 export const sendMail = async (to: string, subject: string, html: string) => {
   if (!transporter) {
