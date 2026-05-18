@@ -1,14 +1,15 @@
 export interface Product {
   id: string;
   name: string;
-  category: 'Vegetables' | 'Fruits' | 'Grains' | 'Dairy';
+  category: any;
   price: number;
-  unit: 'kg' | 'litre' | 'dozen' | 'piece';
+  unit: string;
   stock: number;
   farmerName: string;
   description: string;
   imageUrl: string;
   createdAt: string;
+  [key: string]: any;
 }
 
 export interface CartItem {
@@ -18,12 +19,23 @@ export interface CartItem {
 
 export interface Order {
   id: string;
-  buyerName: string;
-  phone: string;
-  address: string;
+  orderId?: string;
+  userId?: string;
+  uid?: string;
+  buyerName?: string;
+  userName?: string;
+  phone?: string;
+  userPhone?: string;
+  userEmail?: string;
+  address?: string;
+  deliveryAddress?: string;
   items: CartItem[];
   total: number;
-  paymentMethod: 'COD' | 'PhonePe' | 'GooglePay' | 'Paytm';
-  status: 'Pending' | 'Processing' | 'Shipped' | 'Delivered';
+  totalAmount?: number;
+  paymentMethod?: string;
+  paymentStatus?: string;
+  upiTransactionId?: string;
+  status: string;
   createdAt: string;
+  [key: string]: any;
 }
