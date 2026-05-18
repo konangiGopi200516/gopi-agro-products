@@ -89,6 +89,7 @@ const Checkout = () => {
     }
   };
 
+
   if (cartItems.length === 0) return null;
 
   return (
@@ -186,7 +187,7 @@ const Checkout = () => {
                       {formData.paymentMethod === 'UPI' && <div className="absolute top-3 right-3 text-[var(--color-primary)]"><Check size={20} strokeWidth={3} /></div>}
                       <Smartphone className="text-[#5f259f] mb-3" size={28} />
                       <h3 className="font-sans text-[16px] font-medium text-[var(--color-text-primary)]">UPI / PhonePe</h3>
-                      <p className="text-[13px] text-[var(--color-text-muted)] mt-1">Pay using PhonePe, GPay, Paytm or any UPI app</p>
+                      <p className="text-[13px] text-[var(--color-text-muted)] mt-1">Direct QR scan for all UPI apps</p>
                     </div>
 
                     {/* CARD 2 — COD */}
@@ -200,6 +201,7 @@ const Checkout = () => {
 
                   {/* Expanded Views */}
                   <div className="mt-6">
+
                     {formData.paymentMethod === 'UPI' && (
                       <div className="animate-[fadeUp_0.3s_ease-out]">
                         <div className="flex flex-col items-center">
