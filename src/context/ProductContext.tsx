@@ -2,6 +2,8 @@ import React, { createContext, useState, useEffect, ReactNode, useContext } from
 import type { Product } from '../types';
 import { seedProducts } from '../data/seedProducts';
 
+const BASE = import.meta.env.PROD ? "/api" : (import.meta.env.VITE_API_URL || "http://localhost:5000/api");
+
 interface ProductContextType {
   products: Product[];
   addProduct: (product: Product) => void;
@@ -22,7 +24,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
 
   const addProduct = async (product: Product) => {
     try {
-      const response = await fetch('http://localhost:5000/api/products', {
+      const response = await fetch(`${BASE}/products`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(product)
@@ -38,7 +40,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
 
   const updateProduct = async (product: Product) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/products/${product.id}`, {
+      const response = await fetch(`${BASE}/products/${product.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(product)
@@ -54,7 +56,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
 
   const deleteProduct = async (id: string) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/products/${id}`, {
+      const response = await fetch(`${BASE}/products/${id}`, {
         method: 'DELETE'
       });
       if (response.ok) {
