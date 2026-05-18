@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  uid       String   @unique          // browser localStorage uid or Firebase Auth uid
+  name      String
+  email     String   @unique
+  phone     String?
+  address   String?
+  createdAt DateTime @default(now())
+  orders    Order[]
+}
+
+model Category {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique          // Fruits, Vegetables, Dairy, Grains
+  slug     String    @unique
+  products Product[]
+}
+
+model Product {
+  id          Int        @id @default(autoincrement())
+  name        String
+  description String?    @db.Text
+  price       Float
+  mrp         Float?                  // original price before discount
+  unit        String     @default("kg")
+  stock       Int        @default(0)
+  imageUrl    String?
+  farmerName  String?
+  farmerLocation String?
+  isFeatured  Boolean    @default(false)
+  isActive    Boolean    @default(true)
+  categoryId  Int
+  category    Category   @relation(fields: [categoryId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  orderItems  OrderItem[]
+}
+
+model Order {
+  id              Int         @id @default(autoincrement())
+  orderId         String      @unique   // readable ID e.g. "KM-1748123456"
+  userId          Int
+  user            User        @relation(fields: [userId], references: [id])
+  status          OrderStatus @default(PENDING)
+  totalAmount     Float
+  deliveryAddress String      @db.Text
+  paymentMethod   String                // COD, UPI, Card, NetBanking
+  paymentStatus   PaymentStatus @default(PENDING)
+  upiTransactionId String?             // for UPI/PhonePe payments
+  cardLast4       String?              // last 4 digits of card
+  bankName        String?              // for net banking
+  notes           String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  items           OrderItem[]
+  payment         Payment?
+}
+
+model OrderItem {
+  id         Int     @id @default(autoincrement())
+  orderId    Int
+  order      Order   @relation(fields: [orderId], references: [id])
+  productId  Int
+  product    Product @relation(fields: [productId], references: [id])
+  name       String                   // snapshot of product name at time of order
+  price      Float                    // snapshot of price at time of order
+  quantity   Int
+  unit       String
+  imageUrl   String?
+  subtotal   Float
+}
+
+model Payment {
+  id              Int           @id @default(autoincrement())
+  orderId         Int           @unique
+  order           Order         @relation(fields: [orderId], references: [id])
+  method          String        // COD, UPI, Card, NetBanking
+  status          PaymentStatus @default(PENDING)
+  amount          Float
+  transactionId   String?       // UPI txn ID or card auth code
+  cardLast4       String?
+  cardHolderName  String?
+  bankName        String?
+  paidAt          DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model Admin {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String                   // bcrypt hashed
+  name      String
+  createdAt DateTime @default(now())
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
