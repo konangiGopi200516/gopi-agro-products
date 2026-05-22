@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+// @ts-ignore
 import { load } from "@cashfreepayments/cashfree-js";
 
 interface PaymentParams {

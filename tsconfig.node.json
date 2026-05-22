@@ -22,10 +22,6 @@
   },
   "include": [
     "vite.config.ts",
-    "api/**/*",
-    "server/src/index.ts",
-    "server/src/firebase.ts",
-    "server/src/config/mailer.ts",
-    "server/src/templates/emails.ts"
+    "api/**/*"
   ]
 }
