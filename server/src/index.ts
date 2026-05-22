@@ -121,7 +121,9 @@ app.get("/api/products", async (req, res) => {
 
     res.json(products.sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || "")));
   } catch (err) {
-    res.status(500).json({ error: "Error fetching products" });
+    const fs = require('fs');
+    const files = fs.readdirSync(process.cwd());
+    res.status(500).json({ error: "Error fetching products", details: err instanceof Error ? err.message : String(err), cwd: process.cwd(), files });
   }
 });
 
