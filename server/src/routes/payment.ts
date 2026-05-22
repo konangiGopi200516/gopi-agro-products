@@ -196,7 +196,7 @@ router.get("/status/:orderId", async (req: Request, res: Response) => {
     // If still pending, check Cashfree directly
     if (order.paymentStatus === "PENDING" && order.paymentMethod === "CASHFREE") {
       try {
-        const cfStatus = await fetchCashfreeOrderStatus(orderId);
+        const cfStatus = await fetchCashfreeOrderStatus(orderId as string);
         if (cfStatus.order_status === "PAID") {
           await db.ref(`orders/${orderId}`).update({
             paymentStatus: "PAID",
