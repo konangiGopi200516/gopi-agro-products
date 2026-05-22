@@ -24,7 +24,19 @@ try {
     console.log('🔥 Firebase Admin initialized via individual FIREBASE_ variables');
   } else {
     try {
-      const serviceAccountPath = path.join(__dirname, '../../firebase-service-account.json');
+      const paths = [
+        path.join(__dirname, '../../firebase-service-account.json'), // Local dev
+        path.join(process.cwd(), 'firebase-service-account.json'),   // Vercel serverless
+        path.join(__dirname, 'firebase-service-account.json')
+      ];
+      let serviceAccountPath = '';
+      for (const p of paths) {
+        if (fs.existsSync(p)) {
+          serviceAccountPath = p;
+          break;
+        }
+      }
+      if (!serviceAccountPath) throw new Error('Service account file not found');
       const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
