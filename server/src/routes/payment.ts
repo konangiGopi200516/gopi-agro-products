@@ -31,8 +31,8 @@ router.post("/create-order", async (req: Request, res: Response) => {
     }
 
     const orderId = `KM_${Date.now()}_${uuidv4().slice(0, 8).toUpperCase()}`;
-    const clientUrl = process.env.CLIENT_URL || process.env.FRONTEND_URL || "http://localhost:5173";
-    const serverUrl = process.env.BACKEND_URL || "http://localhost:5000";
+    const clientUrl = process.env.CLIENT_URL || process.env.FRONTEND_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:5173");
+    const serverUrl = process.env.BACKEND_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:5000");
 
     // Save pending order to Firebase
     const orderData = {
