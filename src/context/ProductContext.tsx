@@ -19,7 +19,22 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
-    setProducts(seedProducts);
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch(`${BASE}/products`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.length > 0) {
+            setProducts(data);
+            return;
+          }
+        }
+      } catch (error) {
+        console.warn('⚠️ Server offline or Firebase empty, falling back to local seeds:', error);
+      }
+      setProducts(seedProducts);
+    };
+    fetchProducts();
   }, []);
 
   const addProduct = async (product: Product) => {

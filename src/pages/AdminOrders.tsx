@@ -77,6 +77,7 @@ const AdminOrders = () => {
                 <th className="px-5 py-4 font-bold">Order ID</th>
                 <th className="px-5 py-4 font-bold">Customer</th>
                 <th className="px-5 py-4 font-bold">Amount</th>
+                <th className="px-5 py-4 font-bold">Payment</th>
                 <th className="px-5 py-4 font-bold">Status</th>
                 <th className="px-5 py-4 font-bold text-right">Action</th>
               </tr>
@@ -87,6 +88,17 @@ const AdminOrders = () => {
                   <td className="px-5 py-4"><div className="font-mono text-[13px] font-bold text-[var(--color-primary-dark)] bg-[var(--color-amber-light)] px-2 py-1 rounded inline-block">{o.orderId || o.id.slice(0,8)}</div></td>
                   <td className="px-5 py-4 text-[14px] font-medium text-[var(--color-text-primary)]">{o.userName || o.buyerName}</td>
                   <td className="px-5 py-4 font-bold text-[14px] text-[var(--color-text-primary)]">₹{o.totalAmount || o.total}</td>
+                  <td className="px-5 py-4">
+                    {o.paymentMethod === "COD" ? (
+                      <span className={`text-[11px] font-bold px-2.5 py-1 rounded-[var(--radius-pill)] ${o.codOtpVerified ? 'bg-[var(--color-green-light)] text-[var(--color-green)]' : 'bg-[var(--color-amber-light)] text-[var(--color-primary-dark)]'}`}>
+                        {o.codOtpVerified ? "OTP Verified ✓" : "Pending OTP"}
+                      </span>
+                    ) : (
+                      <span className="text-[11px] font-bold px-2.5 py-1 rounded-[var(--radius-pill)] bg-blue-50 text-blue-700">
+                        {o.paymentMethod || "Online"}
+                      </span>
+                    )}
+                  </td>
                   <td className="px-5 py-4">
                     <select value={o.status} onChange={e=>handleUpdateStatus(o.id, o.userId, e.target.value)} className={`text-[12px] font-bold px-3 py-1.5 rounded-[var(--radius-pill)] outline-none appearance-none cursor-pointer ${statusColors[o.status as keyof typeof statusColors]}`}>
                       {Object.keys(statusColors).map(k => <option key={k} value={k}>{k}</option>)}
@@ -114,7 +126,7 @@ const AdminOrders = () => {
                   <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius-sm)] p-4 text-[14px]">
                     <div className="font-bold text-[var(--color-text-primary)]">{selectedOrder.userName || selectedOrder.buyerName}</div>
                     <div className="text-[var(--color-text-secondary)]">{selectedOrder.userPhone || selectedOrder.phone}</div>
-                    <div className="text-[var(--color-text-secondary)] mt-2">{selectedOrder.deliveryAddress || selectedOrder.address}</div>
+                    <div className="text-[var(--color-text-secondary)] mt-2">{(() => { const addr = selectedOrder.deliveryAddress || selectedOrder.address; if (typeof addr === 'object' && addr) return `${addr.line1}, ${addr.city}, ${addr.state} - ${addr.pincode}`; return addr || 'N/A'; })()}</div>
                   </div>
                 </div>
                 <div>
@@ -122,6 +134,14 @@ const AdminOrders = () => {
                   <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius-sm)] p-4 text-[14px]">
                     <div className="flex justify-between mb-1.5"><span className="text-[var(--color-text-secondary)]">Method:</span> <span className="font-bold">{selectedOrder.paymentMethod}</span></div>
                     <div className="flex justify-between mb-1.5"><span className="text-[var(--color-text-secondary)]">Payment:</span> <span className="font-bold text-[var(--color-green)]">{selectedOrder.paymentStatus || (selectedOrder.paymentMethod === 'COD' ? 'Pending' : 'Paid')}</span></div>
+                    {selectedOrder.paymentMethod === "COD" && (
+                      <div className="flex justify-between mb-1.5">
+                        <span className="text-[var(--color-text-secondary)]">OTP Verification:</span>
+                        <span className={`font-bold ${selectedOrder.codOtpVerified ? "text-[var(--color-green)]" : "text-[var(--color-primary-dark)]"}`}>
+                          {selectedOrder.codOtpVerified ? "OTP Verified ✓" : "Pending OTP Verification"}
+                        </span>
+                      </div>
+                    )}
                     {selectedOrder.upiTransactionId && (
                       <div className="flex justify-between mt-3 pt-3 border-t border-[var(--color-border)] text-[13px]"><span className="text-[var(--color-text-muted)] font-medium">UPI Ref:</span> <span className="font-mono font-bold text-[var(--color-primary)]">{selectedOrder.upiTransactionId}</span></div>
                     )}

@@ -6,6 +6,11 @@ import { getUserOrders } from '../services/api';
 import { useCartContext } from '../context/CartContext';
 import { useToast } from '../components/ToastProvider';
 
+const getItemName = (item: any) => item.product?.name || item.name || "Product";
+const getItemPrice = (item: any) => item.product?.price || item.price || 0;
+const getItemImage = (item: any) => item.product?.imageUrl || item.imageUrl || "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=200";
+const getItemUnit = (item: any) => item.product?.unit || item.unit || "pcs";
+
 const MyOrders = () => {
   const { state } = useContext(AppContext);
   const { addToCart } = useCartContext();
@@ -31,7 +36,14 @@ const MyOrders = () => {
 
   const handleReorder = (order: any) => {
     order.items.forEach((item: any) => {
-      addToCart(item.product, item.quantity);
+      const product = item.product || {
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        imageUrl: item.imageUrl || "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=200",
+        unit: item.unit || "pcs"
+      };
+      addToCart(product, item.quantity);
     });
     showToast('Items added to cart!', 'success');
   };
@@ -98,12 +110,12 @@ const MyOrders = () => {
 
                 <div className="flex items-center gap-2 mt-3">
                   {order.items.slice(0, 3).map((item: any, i: number) => (
-                    <img key={i} src={item.product.imageUrl} alt="" className="w-10 h-10 rounded-md object-cover border border-[var(--color-border)]" />
+                    <img key={i} src={getItemImage(item)} alt="" className="w-10 h-10 rounded-md object-cover border border-[var(--color-border)]" />
                   ))}
                   {order.items.length > 3 && <div className="text-[12px] font-medium text-[var(--color-text-muted)] bg-[var(--color-surface)] px-2 py-1 rounded-md">+{order.items.length - 3} more</div>}
                 </div>
                 <div className="text-[13px] text-[var(--color-text-muted)] mt-2 line-clamp-2">
-                  {order.items.map((i: any) => i.product.name).join(', ')}
+                  {order.items.map((i: any) => getItemName(i)).join(', ')}
                 </div>
 
                 <div className="flex justify-between items-center mt-4 pt-3 border-t border-[var(--color-border)]">
@@ -131,13 +143,13 @@ const MyOrders = () => {
                     {order.items.map((item: any, i: number) => (
                       <div key={i} className="flex justify-between items-center text-[14px]">
                         <div className="flex items-center gap-3">
-                          <img src={item.product.imageUrl} alt="" className="w-12 h-12 rounded-md object-cover border border-[var(--color-border)]" />
+                          <img src={getItemImage(item)} alt="" className="w-12 h-12 rounded-md object-cover border border-[var(--color-border)]" />
                           <div>
-                            <div className="font-medium text-[var(--color-text-primary)]">{item.product.name}</div>
-                            <div className="text-[12px] text-[var(--color-text-muted)]">{item.quantity} × ₹{item.product.price}</div>
+                            <div className="font-medium text-[var(--color-text-primary)]">{getItemName(item)}</div>
+                            <div className="text-[12px] text-[var(--color-text-muted)]">{item.quantity} × ₹{getItemPrice(item)}</div>
                           </div>
                         </div>
-                        <div className="font-bold text-[var(--color-text-primary)]">₹{item.product.price * item.quantity}</div>
+                        <div className="font-bold text-[var(--color-text-primary)]">₹{getItemPrice(item) * item.quantity}</div>
                       </div>
                     ))}
                   </div>
@@ -145,7 +157,7 @@ const MyOrders = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5 text-[13px]">
                     <div className="bg-white p-4 rounded-[var(--radius-sm)] border border-[var(--color-border)]">
                       <div className="flex items-center gap-1.5 font-bold text-[var(--color-text-secondary)] mb-2"><MapPin size={14} /> Delivery Address</div>
-                      <div className="text-[var(--color-text-primary)]">{order.deliveryAddress}</div>
+                      <div className="text-[var(--color-text-primary)]">{typeof order.deliveryAddress === 'object' && order.deliveryAddress ? `${order.deliveryAddress.line1}, ${order.deliveryAddress.city}, ${order.deliveryAddress.state} - ${order.deliveryAddress.pincode}` : (order.deliveryAddress || 'N/A')}</div>
                     </div>
                     <div className="bg-white p-4 rounded-[var(--radius-sm)] border border-[var(--color-border)]">
                       <div className="flex items-center gap-1.5 font-bold text-[var(--color-text-secondary)] mb-2"><CreditCard size={14} /> Payment Method</div>

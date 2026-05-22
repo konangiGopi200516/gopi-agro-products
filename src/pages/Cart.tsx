@@ -3,11 +3,8 @@ import { ShoppingCart, ArrowRight, Trash2, Minus, Plus, Tag } from 'lucide-react
 import { useCartContext } from '../context/CartContext';
 
 const Cart = () => {
-  const { cartItems, itemCount, subtotal, total, updateQuantity, removeFromCart } = useCartContext();
+  const { cartItems, itemCount, subtotal, deliveryCharge, total, updateQuantity, removeFromCart } = useCartContext();
   const navigate = useNavigate();
-
-  const shipping = subtotal > 0 ? (subtotal > 499 ? 0 : 50) : 0;
-  const finalTotal = subtotal + shipping;
 
   if (cartItems.length === 0) {
     return (
@@ -84,8 +81,8 @@ const Cart = () => {
                 </div>
                 <div className="flex justify-between text-[var(--color-text-secondary)]">
                   <span>Delivery <span className="text-[12px]">(Free above ₹499)</span></span>
-                  <span className={shipping === 0 ? "text-[var(--color-green)] font-medium" : "text-[var(--color-text-primary)]"}>
-                    {shipping === 0 ? 'Free' : `₹${shipping}`}
+                  <span className={deliveryCharge === 0 ? "text-[var(--color-green)] font-medium" : "text-[var(--color-text-primary)]"}>
+                    {deliveryCharge === 0 ? 'Free' : `₹${deliveryCharge}`}
                   </span>
                 </div>
                 <div className="flex justify-between text-[var(--color-text-secondary)]">
@@ -105,7 +102,7 @@ const Cart = () => {
               <div className="border-t border-[var(--color-border)] pt-4 mb-6">
                 <div className="flex justify-between items-center mb-1">
                   <span className="font-bold text-[18px] text-[var(--color-text-primary)]">Total</span>
-                  <span className="font-bold text-[22px] text-[var(--color-primary)]">₹{finalTotal}</span>
+                  <span className="font-bold text-[22px] text-[var(--color-primary)]">₹{total.toFixed(0)}</span>
                 </div>
               </div>
               

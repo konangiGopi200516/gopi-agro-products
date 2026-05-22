@@ -12,11 +12,52 @@ import {
   orderProcessingEmail,
   orderCancelledEmail
 } from "./templates/emails";
+import paymentRouter from "./routes/payment";
 
 dotenv.config();
 const app = express();
 app.use(cors({ origin: process.env.CLIENT_URL || "*" }));
+
+// Add raw body parser BEFORE json parser for webhook route
+app.use("/api/payment/webhook", express.raw({ type: "application/json" }));
+
 app.use(express.json());
+
+// Register payment routes (legacy /api/payment/* prefix)
+app.use("/api/payment", paymentRouter);
+
+// ─── Clean API routes matching desired flow ──────────────────────────────────
+// POST /api/create-order → same as /api/payment/create-order
+app.use("/api", paymentRouter);
+
+// Order Schema Healing Formatter
+function formatOrder(key: string, data: any) {
+  if (!data) return null;
+  return {
+    id: key,
+    orderId: data.orderId || `KM_${key.slice(0, 8)}`,
+    uid: data.uid || data.userId || "guest",
+    userName: data.userName || data.buyerName || data.customerName || "Guest User",
+    buyerName: data.buyerName || data.userName || data.customerName || "Guest User",
+    userEmail: data.userEmail || data.customerEmail || "",
+    userPhone: data.userPhone || data.customerPhone || "",
+    totalAmount: data.totalAmount || data.total || 0,
+    total: data.total || data.totalAmount || 0,
+    deliveryAddress: data.deliveryAddress || data.address || "No Address Provided",
+    address: data.address || data.deliveryAddress || "No Address Provided",
+    paymentMethod: data.paymentMethod || "COD",
+    upiTransactionId: data.upiTransactionId || null,
+    cardLast4: data.cardLast4 || null,
+    bankName: data.bankName || null,
+    paymentStatus: data.paymentStatus || "Pending",
+    status: data.status || data.orderStatus || "Pending",
+    orderStatus: data.orderStatus || data.status || "Pending",
+    items: data.items || data.cartItems || [],
+    cartItems: data.cartItems || data.items || [],
+    createdAt: data.createdAt || new Date().toISOString(),
+    updatedAt: data.updatedAt || data.createdAt || new Date().toISOString()
+  };
+}
 
 // ==========================
 // USER ROUTES
@@ -216,19 +257,19 @@ app.get("/api/orders", async (req, res) => {
   const usersData = usersSnap.val() || {};
 
   let orders = Object.keys(data).map(k => {
-    const order = data[k];
-    const user = usersData[order.uid] || null;
-    return { id: k, ...order, user };
+    const order = formatOrder(k, data[k]);
+    const user = order ? (usersData[order.uid] || null) : null;
+    return { ...order, user };
   });
 
-  res.json(orders.sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || "")));
+  res.json(orders.filter(Boolean).sort((a: any, b: any) => (b.createdAt || "").localeCompare(a.createdAt || "")));
 });
 
 app.get("/api/orders/user/:uid", async (req, res) => {
   const snapshot = await db.ref('orders').orderByChild('uid').equalTo(req.params.uid).once('value');
   const data = snapshot.val() || {};
-  let orders = Object.keys(data).map(k => ({ id: k, ...data[k] }));
-  res.json(orders.sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || "")));
+  let orders = Object.keys(data).map(k => formatOrder(k, data[k]));
+  res.json(orders.filter(Boolean).sort((a: any, b: any) => (b.createdAt || "").localeCompare(a.createdAt || "")));
 });
 
 app.get("/api/orders/:orderId", async (req, res) => {
@@ -244,10 +285,13 @@ app.get("/api/orders/:orderId", async (req, res) => {
     data = querySnap.val()[key];
   }
   
-  const userSnap = await db.ref(`users/${data.uid}`).once('value');
-  data.user = userSnap.val();
+  const formatted = formatOrder(key, data) as any;
+  if (formatted) {
+    const userSnap = await db.ref(`users/${formatted.uid}`).once('value');
+    formatted.user = userSnap.val();
+  }
   
-  res.json({ id: key, ...data });
+  res.json(formatted);
 });
 
 app.put("/api/orders/:orderId/status", async (req, res) => {

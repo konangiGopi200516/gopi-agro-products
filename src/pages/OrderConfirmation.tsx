@@ -123,7 +123,7 @@ const OrderConfirmation = () => {
           <div className="border-t border-[var(--color-border)] pt-4 mb-4">
             <div className="flex items-start gap-2">
               <MapPin size={16} className="text-[var(--color-primary)] mt-0.5 shrink-0" />
-              <div className="text-[14px] text-[var(--color-text-secondary)] leading-relaxed">{order.deliveryAddress || order.address}</div>
+              <div className="text-[14px] text-[var(--color-text-secondary)] leading-relaxed">{(() => { const addr = order.deliveryAddress || order.address; if (typeof addr === 'object' && addr) return `${addr.line1}, ${addr.city}, ${addr.state} - ${addr.pincode}`; return addr || 'N/A'; })()}</div>
             </div>
           </div>
 

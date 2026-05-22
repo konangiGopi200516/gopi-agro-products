@@ -9,6 +9,10 @@ const Products = lazy(() => import('./pages/Products'));
 const ProductDetail = lazy(() => import('./pages/ProductDetail'));
 const Cart = lazy(() => import('./pages/Cart'));
 const Checkout = lazy(() => import('./pages/Checkout'));
+const OrderSuccess = lazy(() => import('./pages/OrderSuccess'));
+const PaymentStatus = lazy(() => import('./pages/PaymentStatus'));
+const PaymentSuccess = lazy(() => import('./pages/PaymentSuccess').then(m => ({ default: m.PaymentSuccess })));
+const PaymentFailed = lazy(() => import('./pages/PaymentFailed').then(m => ({ default: m.PaymentFailed })));
 const OrderConfirmation = lazy(() => import('./pages/OrderConfirmation'));
 const MyOrders = lazy(() => import('./pages/MyOrders'));
 const Admin = lazy(() => import('./pages/Admin'));
@@ -48,6 +52,10 @@ function App() {
                 <Route path="product/:id" element={<ProductDetail />} />
                 <Route path="cart" element={<Cart />} />
                 <Route path="checkout" element={<Checkout />} />
+                <Route path="order-success" element={<OrderSuccess />} />
+                <Route path="payment-status" element={<PaymentStatus />} />
+                <Route path="payment/success" element={<PaymentSuccess />} />
+                <Route path="payment/failed" element={<PaymentFailed />} />
                 <Route path="order-confirmation/:orderId" element={<OrderConfirmation />} />
                 <Route path="my-orders" element={<MyOrders />} />
                 <Route path="admin" element={<Admin />} />

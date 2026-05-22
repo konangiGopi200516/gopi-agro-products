@@ -1,5 +1,6 @@
 import * as admin from 'firebase-admin';
-import { createRequire } from 'module';
+import * as fs from 'fs';
+import * as path from 'path';
 
 try {
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
@@ -22,9 +23,9 @@ try {
     });
     console.log('🔥 Firebase Admin initialized via individual FIREBASE_ variables');
   } else {
-    const require = createRequire(import.meta.url);
     try {
-      const serviceAccount = require('../../firebase-service-account.json');
+      const serviceAccountPath = path.join(__dirname, '../../firebase-service-account.json');
+      const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
         databaseURL: 'https://farmer-friendly-web-app-default-rtdb.firebaseio.com'
