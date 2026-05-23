@@ -269,6 +269,42 @@ const getTransporter = () => {
   return null;
 };
 
+// GET /api/auth/test-email
+router.get("/test-email", async (req: express.Request, res: express.Response) => {
+  try {
+    const transporter = getTransporter();
+    if (!transporter) {
+      return res.status(400).json({ 
+        error: "Nodemailer is not configured. EMAIL_USER or EMAIL_PASS environment variables are missing." 
+      });
+    }
+
+    const testRecipient = (req.query.to as string) || "gopikonangi8@gmail.com";
+    console.log(`Sending Nodemailer test email to: ${testRecipient}...`);
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: testRecipient,
+      subject: "Nodemailer Connection Test - KisanMart",
+      html: `
+        <div style="font-family: sans-serif; padding: 20px;">
+          <h2 style="color: #4CAF50;">🌱 KisanMart Nodemailer Test</h2>
+          <p>This is a test email confirming that Nodemailer is successfully configured on your Render server!</p>
+          <p>If you received this email, the Nodemailer integration is 100% correct!</p>
+        </div>
+      `,
+    });
+
+    res.json({ success: true, message: `Test email successfully sent to ${testRecipient}!` });
+  } catch (error: any) {
+    console.error("Nodemailer test route failed:", error);
+    res.status(500).json({ 
+      error: error.message || "Failed to send test email", 
+      details: error.toString() 
+    });
+  }
+});
+
 // POST /api/auth/forgot-password
 router.post(
   "/forgot-password",
