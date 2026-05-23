@@ -530,10 +530,9 @@ app.post("/api/admin/login", async (req, res) => {
   return res.status(401).json({ error: "Invalid credentials" });
 });
 
-if (process.env.NODE_ENV !== "production") {
-  app.listen(process.env.PORT || 5000, () =>
-    console.log(`🔥 KisanMart Firebase API server running on port ${process.env.PORT || 5000}`)
-  );
-}
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () =>
+  console.log(`🔥 KisanMart Firebase API server running on port ${PORT}`)
+);
 
 export default app;

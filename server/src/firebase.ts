@@ -112,7 +112,8 @@ try {
     console.log('🔥 Firebase Admin initialized via local JSON file');
   }
 } catch (error) {
-  console.warn('⚠️ No Firebase service account file found. Falling back to local JSON MOCK database for testing.');
+  console.warn('⚠️ Firebase Admin init error:', error);
+  console.warn('⚠️ Falling back to local JSON MOCK database for testing.');
   isMock = true;
   // Initialize an empty mock db if it doesn't exist
   if (!fs.existsSync(path.join(process.cwd(), 'mock-db.json'))) {
