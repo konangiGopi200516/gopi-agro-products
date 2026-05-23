@@ -200,7 +200,17 @@ const seedFarmers = [
   { id: 'f1', name: 'Kotesh', field: 'Fruits Specialist', location: 'Guntur, Andhra Pradesh', rating: 4.9, experience: '15 years', image: '/farmers/kotesh.jpg', phone: '+91 9848022338', status: 'Active' },
   { id: 'f2', name: 'Krishnayya', field: 'Organic Vegetables', location: 'Mysore, Karnataka', rating: 4.8, experience: '12 years', image: '/farmers/krishnayya.jpg', phone: '+91 9848011223', status: 'Active' },
   { id: 'f3', name: 'Rajendra', field: 'Grains & Ghee Specialist', location: 'Amritsar, Punjab', rating: 4.7, experience: '18 years', image: '/farmers/rajendra.jpg', phone: '+91 9848033445', status: 'Active' },
-  { id: 'f4', name: 'Rambabu', field: 'Leafy Greens Specialist', location: 'Ratnagiri, Maharashtra', rating: 5.0, experience: '20 years', image: '/farmers/rambabu.jpg', phone: '+91 9848055667', status: 'Active' }
+  { id: 'f4', name: 'Rambabu', field: 'Leafy Greens Specialist', location: 'Ratnagiri, Maharashtra', rating: 5.0, experience: '20 years', image: '/farmers/rambabu.jpg', phone: '+91 9848055667', status: 'Active' },
+  { id: 'f5', name: 'Balaram', field: 'Grains & Dairy Specialist', location: 'Nellore, Andhra Pradesh', rating: 4.8, experience: '10 years', image: '/farmers/balaram.jpg', phone: '+91 9848066778', status: 'Active' },
+  { id: 'f6', name: 'Jakkana', field: 'Vegetable Specialist', location: 'Chittoor, Andhra Pradesh', rating: 4.7, experience: '9 years', image: '/farmers/jakkana.jpg', phone: '+91 9848077889', status: 'Active' },
+  { id: 'f7', name: 'Janardhan', field: 'Fruits Expert', location: 'Anantapur, Andhra Pradesh', rating: 4.9, experience: '14 years', image: '/farmers/janardhan.jpg', phone: '+91 9848088990', status: 'Active' },
+  { id: 'f8', name: 'Lingaiah', field: 'Dairy & Greens Expert', location: 'Vijayawada, Andhra Pradesh', rating: 4.8, experience: '11 years', image: '/farmers/lingaiah.jpg', phone: '+91 9848099001', status: 'Active' },
+  { id: 'f9', name: 'Raghu Varma', field: 'Organic Fruits Expert', location: 'Rajamahendravaram, Andhra Pradesh', rating: 4.9, experience: '16 years', image: '/farmers/raghuvarma.jpg', phone: '+91 9848012345', status: 'Active' },
+  { id: 'f10', name: 'Raja Rao', field: 'Vegetables & Greens', location: 'Narasaraopet, Andhra Pradesh', rating: 4.6, experience: '12 years', image: '/farmers/rajarao.jpg', phone: '+91 9848023456', status: 'Active' },
+  { id: 'f11', name: 'Ramgopal', field: 'Fruits Specialist', location: 'Kakinada, Andhra Pradesh', rating: 4.7, experience: '8 years', image: '/farmers/ramgopal.jpg', phone: '+91 9848034567', status: 'Active' },
+  { id: 'f12', name: 'Rangaiah', field: 'Exotic Vegetables', location: 'Kavali, Andhra Pradesh', rating: 4.8, experience: '15 years', image: '/farmers/rangaiah.jpg', phone: '+91 9848045678', status: 'Active' },
+  { id: 'f13', name: 'Ranga Rao', field: 'Fruits & Berries Expert', location: 'Visakhapatnam, Andhra Pradesh', rating: 4.9, experience: '13 years', image: '/farmers/rangarao.jpg', phone: '+91 9848056789', status: 'Active' },
+  { id: 'f14', name: 'Subba Rao', field: 'Organic Farm Expert', location: 'Eluru, Andhra Pradesh', rating: 5.0, experience: '22 years', image: '/farmers/subbarao.jpg', phone: '+91 9848067890', status: 'Active' }
 ];
 
 app.get("/api/farmers", async (req, res) => {
