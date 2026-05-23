@@ -31,7 +31,9 @@ export async function createCashfreeOrder(params: CreateOrderParams) {
 
   const serverUrl = process.env.BACKEND_URL || "http://localhost:5000";
 
-  const orderMeta: any = {};
+  const orderMeta: any = {
+    return_url: params.returnUrl || `${serverUrl}/order-success?order_id={order_id}`
+  };
 
   // Cashfree PRODUCTION requires HTTPS for both URLs — only add if HTTPS
   const notifyUrl = `${serverUrl}/api/payment/webhook`;

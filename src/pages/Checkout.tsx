@@ -8,8 +8,10 @@ import { useCartContext, FREE_DELIVERY_THRESHOLD, DELIVERY_FEE } from "../contex
 import { AppContext } from "../context/AppContext";
 import { createCODOrder, createOnlineOrder } from "../services/paymentApi";
 import { useCashfreePayment } from "../hooks/useCashfreePayment";
+import { QRModal } from "../components/QRModal";
+import { QrCode } from "lucide-react";
 
-type PaymentMethod = "ONLINE" | "COD";
+type PaymentMethod = "ONLINE" | "COD" | "UPI_QR";
 
 const INDIAN_STATES = [
   "Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh","Goa","Gujarat",
@@ -40,6 +42,8 @@ export default function Checkout() {
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successBrief, setSuccessBrief] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [currentOrderId, setCurrentOrderId] = useState<string>("");
 
   const [address, setAddress] = useState<AddressForm>({
     fullName: currentUser?.name === "Guest User" ? "" : (currentUser?.name || ""),
@@ -119,6 +123,10 @@ export default function Checkout() {
         setSuccessBrief(true);
         clearCart();
         setTimeout(() => navigate(`/order-success?order_id=${result.orderId}`), 1200);
+      } else if (paymentMethod === "UPI_QR") {
+        const result = await createOnlineOrder(checkoutData);
+        setCurrentOrderId(result.orderId);
+        setShowQRModal(true);
       } else {
         const result = await createOnlineOrder(checkoutData);
         await initiatePayment({
@@ -137,9 +145,18 @@ export default function Checkout() {
     } catch (err: any) {
       setError(err.message || "Something went wrong. Please try again.");
     } finally {
-      setProcessing(false);
+      if (paymentMethod !== "UPI_QR") {
+        setProcessing(false);
+      }
     }
   }
+
+  const handleQRSuccess = (oid: string) => {
+    setShowQRModal(false);
+    setSuccessBrief(true);
+    clearCart();
+    setTimeout(() => navigate(`/order-success?order_id=${oid}`), 1200);
+  };
 
   /* ── Helpers ──────────────────────────────────────────────────────────── */
   const inputCls = (field: keyof AddressForm) =>
@@ -153,6 +170,7 @@ export default function Checkout() {
     if (successBrief) return "✓ Order Placed!";
     if (isLoading) return "Processing…";
     if (paymentMethod === "COD") return `Place Order — ₹${total.toFixed(0)} on Delivery`;
+    if (paymentMethod === "UPI_QR") return `Generate QR Code — ₹${total.toFixed(0)}`;
     return `Pay ₹${total.toFixed(0)} Online`;
   };
 
@@ -311,6 +329,28 @@ export default function Checkout() {
                   <span className="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Recommended</span>
                 </label>
 
+                {/* UPI QR */}
+                <label
+                  className={`flex items-center gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
+                    paymentMethod === "UPI_QR"
+                      ? "border-[#2d5a27] bg-green-50"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                  onClick={() => setPaymentMethod("UPI_QR")}
+                >
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                    paymentMethod === "UPI_QR" ? "border-[#2d5a27]" : "border-gray-300"
+                  }`}>
+                    {paymentMethod === "UPI_QR" && <div className="w-2.5 h-2.5 rounded-full bg-[#2d5a27]" />}
+                  </div>
+                  <QrCode size={18} className="text-[#2d5a27] flex-shrink-0" />
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-700 text-sm">Generate QR Code</div>
+                    <div className="text-[11px] text-gray-400">Scan & pay with any UPI App</div>
+                  </div>
+                  <span className="text-[10px] font-bold bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">Fast</span>
+                </label>
+
                 {/* COD */}
                 <div className="relative">
                   <label
@@ -368,6 +408,14 @@ export default function Checkout() {
           </div>
         </div>
       </div>
+
+      <QRModal
+        isOpen={showQRModal}
+        onClose={() => { setShowQRModal(false); setProcessing(false); }}
+        orderId={currentOrderId}
+        amount={total}
+        onSuccess={handleQRSuccess}
+      />
     </div>
   );
 }

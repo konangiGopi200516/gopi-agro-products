@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { CheckCircle, XCircle, Clock, Loader2, ShoppingBag, ArrowRight, Package, Truck, Calendar } from "lucide-react";
+import { CheckCircle, XCircle, Clock, Loader2, ShoppingBag, ArrowRight, Package, Truck, Calendar, Download } from "lucide-react";
 import { verifyOrder } from "../services/paymentApi";
 import { useCartContext } from "../context/CartContext";
 
@@ -166,16 +166,19 @@ export default function OrderSuccess() {
           )}
 
           {/* Buttons */}
-          <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+          <div className="no-print" style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
             <button onClick={() => navigate("/my-orders")} style={{ ...primaryBtnStyle, display: "flex", alignItems: "center", gap: 8 }}>
               <ShoppingBag size={16} /> View My Orders <ArrowRight size={14} />
+            </button>
+            <button onClick={() => window.print()} style={{ ...outlineBtnStyle, display: "flex", alignItems: "center", gap: 6, color: "#f57c00", borderColor: "#f57c00" }}>
+              <Download size={16} /> Download Invoice
             </button>
             <button onClick={() => navigate("/products")} style={outlineBtnStyle}>
               Continue Shopping
             </button>
           </div>
 
-          <div style={{ marginTop: 24, fontSize: 12, color: "#999", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+          <div className="no-print" style={{ marginTop: 24, fontSize: 12, color: "#999", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
             🔒 Payment secured by Cashfree
           </div>
         </div>
@@ -268,4 +271,9 @@ const animations = `
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
   @keyframes fadeInUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes successPulse { 0%, 100% { transform: scale(1); box-shadow: 0 8px 24px rgba(45,90,39,0.3); } 50% { transform: scale(1.05); box-shadow: 0 12px 32px rgba(45,90,39,0.4); } }
+  @media print {
+    .no-print { display: none !important; }
+    body { background: white !important; }
+    div { box-shadow: none !important; }
+  }
 `;
