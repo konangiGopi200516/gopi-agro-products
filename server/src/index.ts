@@ -197,6 +197,20 @@ app.get("/api/farmers", async (req, res) => {
   }
 });
 
+app.post("/api/farmers", async (req, res) => {
+  const ref = db.ref('farmers').push();
+  const farmer = { ...req.body, id: ref.key, createdAt: new Date().toISOString() };
+  await ref.set(farmer);
+  res.json(farmer);
+});
+
+app.put("/api/farmers/:id", async (req, res) => {
+  const ref = db.ref(`farmers/${req.params.id}`);
+  await ref.update(req.body);
+  const snapshot = await ref.once('value');
+  res.json({ id: req.params.id, ...snapshot.val() });
+});
+
 // ==========================
 // ORDER ROUTES
 // ==========================

@@ -46,7 +46,7 @@ const Home = () => {
                 Shop Now
               </Link>
               <Link 
-                to="/about" 
+                to="/farmers" 
                 className="bg-transparent border border-white text-white hover:bg-white/10 font-medium py-3.5 px-8 rounded-[var(--radius-sm)] transition-all flex items-center justify-center"
               >
                 Meet Our Farmers

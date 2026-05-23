@@ -128,8 +128,11 @@ router.post("/login", async (req: Request, res: Response) => {
     let user: any = null;
     let userId: string = "";
     
+    const normalizedIdentifier = identifier.toLowerCase();
+    const phoneIdentifier = identifier.startsWith('+91') ? identifier : `+91${identifier}`;
+    
     for (const key in users) {
-      if (users[key].email === identifier.toLowerCase() || users[key].phone === identifier) {
+      if (users[key].email === normalizedIdentifier || users[key].phone === identifier || users[key].phone === phoneIdentifier) {
         user = users[key];
         userId = key;
         break;
