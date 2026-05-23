@@ -34,7 +34,13 @@ async function main() {
   await db.ref('products').remove();
 
   for (const dir of dirs) {
-    const categoryName = formatTitle(dir.name);
+    // Map folder name to proper category name
+    let categoryName: string;
+    if (dir.name.toLowerCase() === 'spi') {
+      categoryName = 'Spices';
+    } else {
+      categoryName = formatTitle(dir.name);
+    }
     const slug = categoryName.toLowerCase().replace(/\s+/g, '-');
     
     // Create category
