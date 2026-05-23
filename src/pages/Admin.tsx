@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Package, ClipboardList, Settings, LogOut, TrendingUp, DollarSign } from 'lucide-react';
+import { LayoutDashboard, Package, ClipboardList, Settings, LogOut, TrendingUp, DollarSign, Users } from 'lucide-react';
 import { useProductContext } from '../context/ProductContext';
 import { getAllOrders } from '../services/api';
 import type { Order } from '../types';
@@ -80,6 +80,7 @@ const Admin = ({ children }: { children?: React.ReactNode }) => {
     { path: '/admin', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
     { path: '/admin/products', icon: <Package size={20} />, label: 'Products' },
     { path: '/admin/orders', icon: <ClipboardList size={20} />, label: 'Orders' },
+    { path: '/admin/farmers', icon: <Users size={20} />, label: 'Farmers' },
     { path: '#', icon: <Settings size={20} />, label: 'Settings' }
   ];
 

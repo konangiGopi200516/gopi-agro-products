@@ -73,11 +73,12 @@ export const Navbar = () => {
             <div className="hidden md:flex items-center space-x-8">
               <Link to="/" className={navLinkClass('/')}>Home</Link>
               <Link to="/products" className={navLinkClass('/products')}>Products</Link>
+              <Link to="/farmers" className={navLinkClass('/farmers')}>Meet Farmers</Link>
               <Link to="/admin" className={navLinkClass('/admin')}>Admin</Link>
 
               {isAuthenticated ? (
                 <>
-                  <Link to="/orders" className={`flex items-center gap-1.5 ${navLinkClass('/orders')}`}>
+                  <Link to="/my-orders" className={`flex items-center gap-1.5 ${navLinkClass('/my-orders')}`}>
                     <Package size={18} /> My Orders
                   </Link>
                   <button onClick={handleLogout} className="flex items-center gap-1.5 text-[var(--color-text-secondary)] hover:text-red-500 transition-colors">
@@ -130,15 +131,16 @@ export const Navbar = () => {
           <div className="px-4 pt-2 pb-6 space-y-4 flex flex-col">
             <Link to="/" onClick={() => setMobileMenuOpen(false)} className="text-[17px] font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]">Home</Link>
             <Link to="/products" onClick={() => setMobileMenuOpen(false)} className="text-[17px] font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]">Products</Link>
+            <Link to="/farmers" onClick={() => setMobileMenuOpen(false)} className="text-[17px] font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]">Meet Farmers</Link>
             {isAuthenticated ? (
-              <>
-                <Link to="/orders" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 text-[17px] font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]">
+              <div className="flex flex-col space-y-3 mt-2">
+                <Link to="/my-orders" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 text-[17px] font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]">
                   <Package size={20} /> My Orders
                 </Link>
                 <button onClick={() => { setMobileMenuOpen(false); handleLogout(); }} className="flex items-center gap-2 text-[17px] font-medium text-[var(--color-text-secondary)] hover:text-red-500 text-left">
                   <LogOut size={20} /> Logout
                 </button>
-              </>
+              </div>
             ) : (
               <div className="flex flex-col space-y-3 mt-2">
                 <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-center gap-2 text-[17px] font-semibold text-[var(--color-primary)] border-2 border-[var(--color-primary)] rounded-xl py-2 hover:bg-[var(--color-primary)] hover:text-white transition-colors">

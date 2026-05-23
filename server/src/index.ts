@@ -168,6 +168,36 @@ app.get("/api/categories", async (req, res) => {
 });
 
 // ==========================
+// FARMER ROUTES
+// ==========================
+
+const seedFarmers = [
+  { id: 'f1', name: 'Ramesh Kumar', field: 'Organic Vegetables', location: 'Maharashtra', rating: 4.8, experience: '12 years', image: 'https://images.unsplash.com/photo-1595841696677-6489ff3f8cd1?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', phone: '+91 9876543210', status: 'Active' },
+  { id: 'f2', name: 'Suresh Patil', field: 'Fresh Fruits', location: 'Karnataka', rating: 4.9, experience: '8 years', image: 'https://images.unsplash.com/photo-1592982537447-6f2a6a0a2f4c?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', phone: '+91 9876543211', status: 'Active' },
+  { id: 'f3', name: 'Anita Devi', field: 'Dairy & Eggs', location: 'Punjab', rating: 4.7, experience: '15 years', image: 'https://images.unsplash.com/photo-1551804791-5f102570077c?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', phone: '+91 9876543212', status: 'Active' },
+  { id: 'f4', name: 'Gopi Konangi', field: 'Grains & Pulses', location: 'Andhra Pradesh', rating: 5.0, experience: '20 years', image: 'https://images.unsplash.com/photo-1605000797499-95a51c5269ae?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', phone: '+91 9876543213', status: 'Active' },
+  { id: 'f5', name: 'Vikram Singh', field: 'Spices & Herbs', location: 'Kerala', rating: 4.6, experience: '5 years', image: 'https://images.unsplash.com/photo-1589923188900-85dae523342b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', phone: '+91 9876543214', status: 'Inactive' }
+];
+
+app.get("/api/farmers", async (req, res) => {
+  try {
+    const snapshot = await db.ref('farmers').once('value');
+    const data = snapshot.val();
+    if (!data) {
+      // Seed farmers if empty
+      for (const f of seedFarmers) {
+        await db.ref(`farmers/${f.id}`).set(f);
+      }
+      return res.json(seedFarmers);
+    }
+    const farmers = Object.keys(data).map(k => ({ id: k, ...data[k] }));
+    res.json(farmers);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch farmers" });
+  }
+});
+
+// ==========================
 // ORDER ROUTES
 // ==========================
 

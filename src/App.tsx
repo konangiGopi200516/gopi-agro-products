@@ -25,6 +25,8 @@ const Welcome = lazy(() => import('./pages/Welcome'));
 const OTPVerification = lazy(() => import('./pages/OTPVerification'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const MeetFarmers = lazy(() => import('./pages/MeetFarmers'));
+const AdminFarmers = lazy(() => import('./pages/AdminFarmers'));
 
 const LoadingSpinner = () => (
   <div className="min-h-screen flex items-center justify-center bg-[var(--color-surface)]">
@@ -53,10 +55,17 @@ function App() {
         <Router>
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>
+              <Route path="/welcome" element={<Welcome />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/verify-otp" element={<OTPVerification />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+
               <Route path="/" element={<Layout />}>
                 <Route index element={<Home />} />
-                <Route path="welcome" element={<Welcome />} />
                 <Route path="products" element={<Products />} />
+                <Route path="farmers" element={<MeetFarmers />} />
                 <Route path="product/:id" element={<ProductDetail />} />
                 <Route path="cart" element={<Cart />} />
                 <Route path="checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
@@ -66,14 +75,10 @@ function App() {
                 <Route path="payment/failed" element={<PaymentFailed />} />
                 <Route path="order-confirmation/:orderId" element={<ProtectedRoute><OrderConfirmation /></ProtectedRoute>} />
                 <Route path="my-orders" element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
-                <Route path="login" element={<Login />} />
-                <Route path="signup" element={<Signup />} />
-                <Route path="verify-otp" element={<OTPVerification />} />
-                <Route path="forgot-password" element={<ForgotPassword />} />
-                <Route path="reset-password" element={<ResetPassword />} />
                 <Route path="admin" element={<Admin />} />
                 <Route path="admin/orders" element={<AdminOrders />} />
                 <Route path="admin/products" element={<AdminProducts />} />
+                <Route path="admin/farmers" element={<AdminFarmers />} />
               </Route>
             </Routes>
           </Suspense>
