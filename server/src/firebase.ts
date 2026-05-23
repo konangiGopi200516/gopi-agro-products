@@ -2,6 +2,74 @@ import * as admin from 'firebase-admin';
 import * as fs from 'fs';
 import * as path from 'path';
 
+// Define the mock DB behavior
+class MockDbRef {
+  path: string;
+  constructor(p: string) { this.path = p; }
+  async once(event: string) {
+    const data = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'mock-db.json'), 'utf8') || '{}');
+    const parts = this.path.split('/').filter(Boolean);
+    let current = data;
+    for (const part of parts) {
+      if (current) current = current[part];
+    }
+    
+    // Support for orderByChild("email").equalTo(email)
+    if (this._orderBy && this._equalTo && current) {
+      const filtered: any = {};
+      let found = false;
+      for (const key in current) {
+         if (current[key] && current[key][this._orderBy] === this._equalTo) {
+             filtered[key] = current[key];
+             found = true;
+         }
+      }
+      return { exists: () => found, val: () => found ? filtered : null };
+    }
+
+    return { exists: () => current !== undefined && current !== null, val: () => current };
+  }
+  async set(value: any) {
+    const dbPath = path.join(process.cwd(), 'mock-db.json');
+    if (!fs.existsSync(dbPath)) fs.writeFileSync(dbPath, '{}');
+    const data = JSON.parse(fs.readFileSync(dbPath, 'utf8') || '{}');
+    const parts = this.path.split('/').filter(Boolean);
+    let current = data;
+    for (let i = 0; i < parts.length - 1; i++) {
+      if (!current[parts[i]]) current[parts[i]] = {};
+      current = current[parts[i]];
+    }
+    current[parts[parts.length - 1]] = value;
+    fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+  }
+  async update(value: any) {
+    const dbPath = path.join(process.cwd(), 'mock-db.json');
+    if (!fs.existsSync(dbPath)) fs.writeFileSync(dbPath, '{}');
+    const data = JSON.parse(fs.readFileSync(dbPath, 'utf8') || '{}');
+    const parts = this.path.split('/').filter(Boolean);
+    let current = data;
+    for (let i = 0; i < parts.length - 1; i++) {
+      if (!current[parts[i]]) current[parts[i]] = {};
+      current = current[parts[i]];
+    }
+    current[parts[parts.length - 1]] = { ...(current[parts[parts.length - 1]] || {}), ...value };
+    fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+  }
+  async push(value: any) {
+    const pushId = 'push_' + Date.now().toString(36);
+    const newRef = new MockDbRef(this.path + '/' + pushId);
+    await newRef.set(value);
+    return { key: pushId };
+  }
+  
+  _orderBy: string | null = null;
+  _equalTo: string | null = null;
+  orderByChild(child: string) { this._orderBy = child; return this; }
+  equalTo(value: string) { this._equalTo = value; return this; }
+}
+
+let isMock = false;
+
 try {
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
     const serviceAccount = typeof process.env.FIREBASE_SERVICE_ACCOUNT === 'string' && process.env.FIREBASE_SERVICE_ACCOUNT.startsWith('{')
@@ -23,36 +91,35 @@ try {
     });
     console.log('🔥 Firebase Admin initialized via individual FIREBASE_ variables');
   } else {
-    try {
-      const paths = [
-        path.join(__dirname, '../../firebase-service-account.json'), // Local dev
-        path.join(process.cwd(), 'firebase-service-account.json'),   // Vercel serverless
-        path.join(__dirname, 'firebase-service-account.json')
-      ];
-      let serviceAccountPath = '';
-      for (const p of paths) {
-        if (fs.existsSync(p)) {
-          serviceAccountPath = p;
-          break;
-        }
+    const paths = [
+      path.join(__dirname, '../../firebase-service-account.json'), // Local dev
+      path.join(process.cwd(), 'firebase-service-account.json'),   // Vercel serverless
+      path.join(__dirname, 'firebase-service-account.json')
+    ];
+    let serviceAccountPath = '';
+    for (const p of paths) {
+      if (fs.existsSync(p)) {
+        serviceAccountPath = p;
+        break;
       }
-      if (!serviceAccountPath) throw new Error('Service account file not found');
-      const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-        databaseURL: 'https://farmer-friendly-web-app-default-rtdb.firebaseio.com'
-      });
-      console.log('🔥 Firebase Admin initialized via local JSON file');
-    } catch (localErr) {
-      console.warn('⚠️ No Firebase service account file found locally. Attempting default credentials...');
-      admin.initializeApp({
-        databaseURL: 'https://farmer-friendly-web-app-default-rtdb.firebaseio.com'
-      });
     }
+    if (!serviceAccountPath) throw new Error('Service account file not found');
+    const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+      databaseURL: 'https://farmer-friendly-web-app-default-rtdb.firebaseio.com'
+    });
+    console.log('🔥 Firebase Admin initialized via local JSON file');
   }
 } catch (error) {
-  console.error('❌ Error initializing Firebase Admin:', error);
+  console.warn('⚠️ No Firebase service account file found. Falling back to local JSON MOCK database for testing.');
+  isMock = true;
+  // Initialize an empty mock db if it doesn't exist
+  if (!fs.existsSync(path.join(process.cwd(), 'mock-db.json'))) {
+     fs.writeFileSync(path.join(process.cwd(), 'mock-db.json'), JSON.stringify({ users: {}, authLogs: {} }));
+  }
 }
 
-export const db = admin.database();
-export const auth = admin.auth();
+export const db = isMock ? { ref: (pathString: string) => new MockDbRef(pathString) } : admin.database();
+export const auth = isMock ? {} as any : admin.auth();
+export { admin };

@@ -9,3 +9,5 @@ export default defineConfig({
     tailwindcss(),
   ],
 })
+
+// Restarting Vite to clear dependency cache

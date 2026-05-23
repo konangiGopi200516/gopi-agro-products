@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom
 import { Navbar } from './components/Navbar';
 import { ProductProvider } from './context/ProductContext';
 import { CartProvider } from './context/CartContext';
+import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 const Home = lazy(() => import('./pages/Home'));
@@ -50,7 +51,8 @@ const Layout = () => {
 
 function App() {
   return (
-    <ProductProvider>
+    <AuthProvider>
+      <ProductProvider>
       <CartProvider>
         <Router>
           <Suspense fallback={<LoadingSpinner />}>
@@ -85,6 +87,7 @@ function App() {
         </Router>
       </CartProvider>
     </ProductProvider>
+    </AuthProvider>
   );
 }
 

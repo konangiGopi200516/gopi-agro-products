@@ -1,0 +1,1 @@
+{"root":["./src/firebase.ts","./src/index.ts","./src/seedfirebase.ts","./src/config/db.ts","./src/config/mailer.ts","./src/middleware/authmiddleware.ts","./src/routes/payment.ts","./src/services/cashfree.ts","./src/services/emailtemplates.ts","./src/services/otp.ts","./src/templates/emails.ts","./src/utils/asynchandler.ts"],"version":"5.9.3"}

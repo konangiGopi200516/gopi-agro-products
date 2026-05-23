@@ -23,7 +23,7 @@ export async function createOnlineOrder(data: CheckoutData) {
       const err = await res.json();
       errMessage = err.error || errMessage;
     } catch (parseError) {
-      errMessage = "Backend server error. Please check if Vercel environment variables are configured correctly.";
+      errMessage = "Backend server error. If testing locally, ensure the backend is running. If on Vercel, check environment variables.";
     }
     throw new Error(errMessage);
   }
@@ -53,7 +53,7 @@ export async function createCODOrder(data: CheckoutData) {
       const err = await res.json();
       errMessage = err.error || errMessage;
     } catch (parseError) {
-      errMessage = "Backend server error. Please check if Vercel environment variables are configured correctly.";
+      errMessage = "Backend server error. If testing locally, ensure the backend is running. If on Vercel, check environment variables.";
     }
     throw new Error(errMessage);
   }
