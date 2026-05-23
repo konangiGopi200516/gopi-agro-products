@@ -11,7 +11,7 @@ import { useCashfreePayment } from "../hooks/useCashfreePayment";
 import { QRModal } from "../components/QRModal";
 import { QrCode } from "lucide-react";
 
-type PaymentMethod = "ONLINE" | "COD" | "UPI_QR";
+type PaymentMethod = "UPI" | "CARD" | "COD";
 
 const INDIAN_STATES = [
   "Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh","Goa","Gujarat",
@@ -44,6 +44,8 @@ export default function Checkout() {
   const [successBrief, setSuccessBrief] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
   const [currentOrderId, setCurrentOrderId] = useState<string>("");
+  const [upiId, setUpiId] = useState("");
+  const [selectedUpiApp, setSelectedUpiApp] = useState("");
 
   const [address, setAddress] = useState<AddressForm>({
     fullName: currentUser?.name === "Guest User" ? "" : (currentUser?.name || ""),
@@ -59,9 +61,9 @@ export default function Checkout() {
   const isLoading = processing || paymentLoading;
   const codDisabled = total > 5000;
 
-  // If COD was selected but total went above 5000, switch to ONLINE
+  // If COD was selected but total went above 5000, switch to UPI
   useEffect(() => {
-    if (paymentMethod === "COD" && codDisabled) setPaymentMethod("ONLINE");
+    if (paymentMethod === "COD" && codDisabled) setPaymentMethod("UPI");
   }, [codDisabled, paymentMethod]);
 
   /* ── Empty cart guard ─────────────────────────────────────────────────── */
@@ -124,9 +126,9 @@ export default function Checkout() {
         clearCart();
         setTimeout(() => navigate(`/order-success?order_id=${result.orderId}`), 1200);
       } else if (paymentMethod === "UPI_QR") {
-        const result = await createOnlineOrder(checkoutData);
-        setCurrentOrderId(result.orderId);
-        setShowQRModal(true);
+        setSuccessBrief(true);
+        clearCart();
+        setTimeout(() => navigate(`/order-success?order_id=${result.orderId}`), 1200);
       } else {
         const result = await createOnlineOrder(checkoutData);
         await initiatePayment({
@@ -145,9 +147,7 @@ export default function Checkout() {
     } catch (err: any) {
       setError(err.message || "Something went wrong. Please try again.");
     } finally {
-      if (paymentMethod !== "UPI_QR") {
-        setProcessing(false);
-      }
+      setProcessing(false);
     }
   }
 
@@ -170,8 +170,8 @@ export default function Checkout() {
     if (successBrief) return "✓ Order Placed!";
     if (isLoading) return "Processing…";
     if (paymentMethod === "COD") return `Place Order — ₹${total.toFixed(0)} on Delivery`;
-    if (paymentMethod === "UPI_QR") return `Pay ₹${total.toFixed(0)} via UPI QR`;
-    return `Pay ₹${total.toFixed(0)} Securely`;
+    if (paymentMethod === "UPI") return `Pay ₹${total.toFixed(0)} via UPI`;
+    return `Pay ₹${total.toFixed(0)} via Card`;
   };
 
   const ctaBg = () => {
@@ -302,82 +302,128 @@ export default function Checkout() {
               </div>
 
               {/* Payment Method */}
-              <div className="px-6 py-4 border-b border-gray-100 space-y-3">
-                <h4 className="font-bold text-gray-800 text-sm flex items-center gap-1.5">
-                  <CreditCard size={16} className="text-[#2d5a27]" /> Payment Method
+              <div className="px-6 py-6 border-b border-gray-100 bg-[#222222] text-white">
+                <h4 className="font-bold text-gray-300 text-xs tracking-wider mb-4 uppercase">
+                  Choose Payment Method
                 </h4>
 
-                {/* Online */}
-                <label
-                  className={`flex items-center gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
-                    paymentMethod === "ONLINE"
-                      ? "border-[#2d5a27] bg-green-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                  onClick={() => setPaymentMethod("ONLINE")}
-                >
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                    paymentMethod === "ONLINE" ? "border-[#2d5a27]" : "border-gray-300"
+                <div className="space-y-3">
+                  {/* UPI */}
+                  <div className={`rounded-xl border transition-all ${
+                    paymentMethod === "UPI" ? "border-blue-500 bg-[#2a2a2a]" : "border-gray-700 bg-[#2a2a2a]"
                   }`}>
-                    {paymentMethod === "ONLINE" && <div className="w-2.5 h-2.5 rounded-full bg-[#2d5a27]" />}
-                  </div>
-                  <Wifi size={18} className="text-[#2d5a27] flex-shrink-0" />
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-700 text-sm">Pay Online</div>
-                    <div className="text-[11px] text-gray-400">UPI · Cards · Net Banking · Wallets</div>
-                  </div>
-                  <span className="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Recommended</span>
-                </label>
+                    <label className="flex items-center gap-3 p-4 cursor-pointer" onClick={() => setPaymentMethod("UPI")}>
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                        paymentMethod === "UPI" ? "border-blue-500" : "border-gray-500"
+                      }`}>
+                        {paymentMethod === "UPI" && <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />}
+                      </div>
+                      <div className="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center border border-gray-700 flex-shrink-0">
+                        📱
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-bold text-white text-sm">UPI</div>
+                        <div className="text-[11px] text-gray-400">GPay, PhonePe, Paytm, BHIM & more</div>
+                      </div>
+                      <span className="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Recommended</span>
+                    </label>
 
-                {/* UPI QR */}
-                <label
-                  className={`flex items-center gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
-                    paymentMethod === "UPI_QR"
-                      ? "border-[#2d5a27] bg-green-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                  onClick={() => setPaymentMethod("UPI_QR")}
-                >
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                    paymentMethod === "UPI_QR" ? "border-[#2d5a27]" : "border-gray-300"
-                  }`}>
-                    {paymentMethod === "UPI_QR" && <div className="w-2.5 h-2.5 rounded-full bg-[#2d5a27]" />}
+                    {/* UPI Expanded Content */}
+                    {paymentMethod === "UPI" && (
+                      <div className="px-4 pb-4 animate-in slide-in-from-top-2 duration-200">
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {[
+                            { id: "gpay", label: "GPay", icon: "G", color: "bg-blue-600" },
+                            { id: "phonepe", label: "PhonePe", icon: "P", color: "bg-purple-600" },
+                            { id: "paytm", label: "Paytm", icon: "B", color: "bg-sky-500" },
+                            { id: "bhim", label: "BHIM", icon: "B", color: "bg-orange-600" }
+                          ].map(app => (
+                            <button
+                              key={app.id}
+                              onClick={() => setSelectedUpiApp(app.id)}
+                              className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-all ${
+                                selectedUpiApp === app.id ? "border-blue-500 bg-blue-500/10 text-blue-400" : "border-gray-600 bg-gray-800/50 text-gray-300 hover:border-gray-500"
+                              }`}
+                            >
+                              <div className={`w-5 h-5 rounded-md flex items-center justify-center text-white text-xs font-bold ${app.color}`}>
+                                {app.icon}
+                              </div>
+                              {app.label}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="text-[11px] text-gray-400 mb-1.5 font-medium">Or enter UPI ID manually</div>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={upiId}
+                            onChange={(e) => setUpiId(e.target.value)}
+                            placeholder="yourname@upi"
+                            className="flex-1 bg-transparent border border-gray-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => { if(upiId) setSelectedUpiApp("manual") }}
+                            className="bg-gray-700 hover:bg-gray-600 border border-gray-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors"
+                          >
+                            Verify
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <QrCode size={18} className="text-[#2d5a27] flex-shrink-0" />
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-700 text-sm">Generate QR Code</div>
-                    <div className="text-[11px] text-gray-400">Scan & pay with any UPI App</div>
-                  </div>
-                  <span className="text-[10px] font-bold bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">Fast</span>
-                </label>
 
-                {/* COD */}
-                <div className="relative">
+                  {/* Credit / Debit Card */}
                   <label
-                    className={`flex items-center gap-3 p-3.5 rounded-xl border-2 transition-all ${
-                      codDisabled
-                        ? "border-gray-100 bg-gray-50 cursor-not-allowed opacity-60"
-                        : paymentMethod === "COD"
-                        ? "border-[#2d5a27] bg-green-50 cursor-pointer"
-                        : "border-gray-200 hover:border-gray-300 cursor-pointer"
+                    className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${
+                      paymentMethod === "CARD" ? "border-blue-500 bg-[#2a2a2a]" : "border-gray-700 bg-[#2a2a2a] hover:border-gray-600"
                     }`}
-                    onClick={() => { if (!codDisabled) setPaymentMethod("COD"); }}
+                    onClick={() => setPaymentMethod("CARD")}
                   >
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                      paymentMethod === "COD" ? "border-[#2d5a27]" : "border-gray-300"
+                      paymentMethod === "CARD" ? "border-blue-500" : "border-gray-500"
                     }`}>
-                      {paymentMethod === "COD" && <div className="w-2.5 h-2.5 rounded-full bg-[#2d5a27]" />}
+                      {paymentMethod === "CARD" && <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />}
                     </div>
-                    <Banknote size={18} className="text-gray-500 flex-shrink-0" />
+                    <div className="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center border border-gray-700 flex-shrink-0">
+                      💳
+                    </div>
                     <div className="flex-1">
-                      <div className="font-semibold text-gray-700 text-sm">Cash on Delivery</div>
-                      <div className="text-[11px] text-gray-400">Pay in cash when delivered</div>
+                      <div className="font-bold text-white text-sm">Credit / Debit Card</div>
+                      <div className="text-[11px] text-gray-400">Visa, Mastercard, RuPay, Amex</div>
                     </div>
-                    <span className="text-[10px] font-bold bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full">Max ₹5,000</span>
                   </label>
-                  {codDisabled && (
-                    <p className="text-[11px] text-red-400 mt-1 ml-1">COD unavailable for orders above ₹5,000</p>
-                  )}
+
+                  {/* COD */}
+                  <div className="relative">
+                    <label
+                      className={`flex items-center gap-3 p-4 rounded-xl border transition-all ${
+                        codDisabled
+                          ? "border-gray-700 bg-[#2a2a2a] cursor-not-allowed opacity-50"
+                          : paymentMethod === "COD"
+                          ? "border-blue-500 bg-[#2a2a2a] cursor-pointer"
+                          : "border-gray-700 bg-[#2a2a2a] hover:border-gray-600 cursor-pointer"
+                      }`}
+                      onClick={() => { if (!codDisabled) setPaymentMethod("COD"); }}
+                    >
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                        paymentMethod === "COD" ? "border-blue-500" : "border-gray-500"
+                      }`}>
+                        {paymentMethod === "COD" && <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />}
+                      </div>
+                      <div className="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center border border-gray-700 flex-shrink-0">
+                        💵
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-bold text-white text-sm">Cash on Delivery</div>
+                        <div className="text-[11px] text-gray-400">Pay when your order arrives</div>
+                      </div>
+                      <span className="text-[10px] font-bold bg-red-100 text-red-600 px-2 py-0.5 rounded-full whitespace-nowrap">+₹30 fee</span>
+                    </label>
+                    {codDisabled && (
+                      <p className="text-[11px] text-red-400 mt-1 ml-1">COD unavailable for orders above ₹5,000</p>
+                    )}
+                  </div>
                 </div>
               </div>
 
