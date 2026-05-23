@@ -1,4 +1,5 @@
 const admin = require("firebase-admin");
+const bcrypt = require("bcryptjs");
 
 const serviceAccount = require("./firebase-service-account.json");
 
@@ -9,36 +10,56 @@ if (!admin.apps.length) {
   });
 }
 
-async function run() {
-  const apiKey = "re_YhWb7qv7_2Vk6hGhtVL8f5fyG8P7KQh4N";
-  const email = "gopikonangi8@gmail.com";
+const db = admin.database();
 
-  console.log(`Calling Resend API to send test email to: ${email}...`);
+async function run() {
+  const email = "gopikonangi882@gmail.com";
+  const password = "KisanMart2026!";
+  const name = "Gopi Konangi Test";
+  const phone = "+917842239788";
+
+  console.log(`Starting programmatic registration for: ${email}...`);
+
   try {
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        from: "KisanMart <onboarding@resend.dev>",
-        to: email,
-        subject: "Resend Local Diagnostic Test - KisanMart",
-        html: `
-          <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px; max-width: 600px; margin: auto;">
-            <h2 style="color: #4CAF50; text-align: center;">🌱 KisanMart Resend Local Test</h2>
-            <p>Congrats! Your Resend API key is 100% active and valid!</p>
-          </div>
-        `
-      })
+    // 1. Create user in Firebase Authentication
+    let userRecord;
+    try {
+      userRecord = await admin.auth().getUserByEmail(email);
+      console.log(`User already exists in Firebase Auth with UID: ${userRecord.uid}. Re-using existing user.`);
+    } catch (authError) {
+      userRecord = await admin.auth().createUser({
+        email: email,
+        password: password,
+        displayName: name,
+        phoneNumber: phone,
+        emailVerified: true
+      });
+      console.log(`✅ Successfully created user in Firebase Auth! UID: ${userRecord.uid}`);
+    }
+
+    // 2. Hash password for DB (KisanMart uses bcrypt)
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(password, salt);
+
+    // 3. Write user details to Realtime Database /users
+    const userRef = db.ref(`users/${userRecord.uid}`);
+    await userRef.set({
+      id: userRecord.uid,
+      name: name,
+      email: email,
+      phone: phone,
+      password: passwordHash,
+      role: "user",
+      isActive: true,
+      isEmailVerified: true,
+      isPhoneVerified: true,
+      createdAt: new Date().toISOString(),
+      lastLoginAt: new Date().toISOString()
     });
 
-    const result = await response.json();
-    console.log("Status Code:", response.status);
-    console.log("Response:", JSON.stringify(result, null, 2));
+    console.log(`✅ Successfully registered and seeded user in Realtime Database at /users/${userRecord.uid}!`);
   } catch (error) {
-    console.error("Fetch failed:", error);
+    console.error("❌ Registration failed:", error);
   }
 
   process.exit(0);

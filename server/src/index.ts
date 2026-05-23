@@ -20,6 +20,9 @@ import authRouter from "./routes/auth";
 dotenv.config();
 const app = express();
 
+// Trust proxy is required on Render/Vercel so express-rate-limit can see the real client IP
+app.set("trust proxy", 1);
+
 app.use(helmet());
 app.use(cookieParser() as any);
 const allowedOrigins = [
