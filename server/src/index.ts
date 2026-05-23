@@ -13,6 +13,7 @@ import {
   orderCancelledEmail
 } from "./templates/emails";
 import paymentRouter from "./routes/payment";
+import authRouter from "./routes/auth";
 
 dotenv.config();
 const app = express();
@@ -29,6 +30,9 @@ app.use("/api/payment", paymentRouter);
 // ─── Clean API routes matching desired flow ──────────────────────────────────
 // POST /api/create-order → same as /api/payment/create-order
 app.use("/api", paymentRouter);
+
+// Authentication Routes
+app.use("/api/auth", authRouter);
 
 // Order Schema Healing Formatter
 function formatOrder(key: string, data: any) {
