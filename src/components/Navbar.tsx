@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingCart, Leaf, Menu, X, Package } from 'lucide-react';
+import { ShoppingCart, Leaf, Menu, X, Package, User, LogOut } from 'lucide-react';
 import { useCartContext } from '../context/CartContext';
 import { AppContext } from '../context/AppContext';
 
@@ -11,6 +11,17 @@ export const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showAnnouncement, setShowAnnouncement] = useState(true);
+  
+  const token = localStorage.getItem('kisanmart_token');
+  const userStr = localStorage.getItem('kisanmart_user');
+  const user = userStr ? JSON.parse(userStr) : null;
+  const isAuthenticated = !!token;
+
+  const handleLogout = () => {
+    localStorage.removeItem('kisanmart_token');
+    localStorage.removeItem('kisanmart_user');
+    window.location.href = '/welcome';
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -64,10 +75,20 @@ export const Navbar = () => {
               <Link to="/products" className={navLinkClass('/products')}>Products</Link>
               <Link to="/admin" className={navLinkClass('/admin')}>Admin</Link>
 
-              {state.currentUser && (
-                <Link to="/my-orders" className={`flex items-center gap-1.5 ${navLinkClass('/my-orders')}`}>
-                  <Package size={18} /> My Orders
-                </Link>
+              {isAuthenticated ? (
+                <>
+                  <Link to="/orders" className={`flex items-center gap-1.5 ${navLinkClass('/orders')}`}>
+                    <Package size={18} /> My Orders
+                  </Link>
+                  <button onClick={handleLogout} className="flex items-center gap-1.5 text-[var(--color-text-secondary)] hover:text-red-500 transition-colors">
+                    <LogOut size={18} /> Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link to="/login" className="border-2 border-[var(--color-primary)] text-[var(--color-primary)] px-4 py-1.5 rounded-xl text-sm font-semibold hover:bg-[var(--color-primary)] hover:text-white transition-colors">Log in</Link>
+                  <Link to="/signup" className="bg-[var(--color-primary)] border-2 border-[var(--color-primary)] text-white px-4 py-1.5 rounded-xl text-sm font-semibold hover:bg-[var(--color-primary-dark)] hover:border-[var(--color-primary-dark)] transition-colors">Sign up</Link>
+                </>
               )}
 
               <Link to="/cart" className="relative text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors flex items-center ml-4">
@@ -109,10 +130,24 @@ export const Navbar = () => {
           <div className="px-4 pt-2 pb-6 space-y-4 flex flex-col">
             <Link to="/" onClick={() => setMobileMenuOpen(false)} className="text-[17px] font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]">Home</Link>
             <Link to="/products" onClick={() => setMobileMenuOpen(false)} className="text-[17px] font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]">Products</Link>
-            {state.currentUser && (
-              <Link to="/my-orders" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 text-[17px] font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]">
-                <Package size={20} /> My Orders
-              </Link>
+            {isAuthenticated ? (
+              <>
+                <Link to="/orders" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 text-[17px] font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]">
+                  <Package size={20} /> My Orders
+                </Link>
+                <button onClick={() => { setMobileMenuOpen(false); handleLogout(); }} className="flex items-center gap-2 text-[17px] font-medium text-[var(--color-text-secondary)] hover:text-red-500 text-left">
+                  <LogOut size={20} /> Logout
+                </button>
+              </>
+            ) : (
+              <div className="flex flex-col space-y-3 mt-2">
+                <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-center gap-2 text-[17px] font-semibold text-[var(--color-primary)] border-2 border-[var(--color-primary)] rounded-xl py-2 hover:bg-[var(--color-primary)] hover:text-white transition-colors">
+                  <User size={20} /> Log in
+                </Link>
+                <Link to="/signup" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-center gap-2 text-[17px] font-semibold text-white bg-[var(--color-primary)] border-2 border-[var(--color-primary)] rounded-xl py-2 hover:bg-[var(--color-primary-dark)] hover:border-[var(--color-primary-dark)] transition-colors">
+                  <User size={20} /> Sign up
+                </Link>
+              </div>
             )}
             <Link to="/admin" onClick={() => setMobileMenuOpen(false)} className="text-[17px] font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]">Admin</Link>
           </div>
