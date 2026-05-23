@@ -21,7 +21,7 @@ dotenv.config();
 const app = express();
 
 // Trust proxy is required on Render/Vercel so express-rate-limit can see the real client IP
-app.set("trust proxy", 1);
+app.set("trust proxy", true);
 
 app.use(helmet());
 app.use(cookieParser() as any);
@@ -197,11 +197,10 @@ app.get("/api/categories", async (req, res) => {
 // ==========================
 
 const seedFarmers = [
-  { id: 'f1', name: 'Ramesh Kumar', field: 'Organic Vegetables', location: 'Maharashtra', rating: 4.8, experience: '12 years', image: 'https://images.unsplash.com/photo-1595841696677-6489ff3f8cd1?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', phone: '+91 9876543210', status: 'Active' },
-  { id: 'f2', name: 'Suresh Patil', field: 'Fresh Fruits', location: 'Karnataka', rating: 4.9, experience: '8 years', image: 'https://images.unsplash.com/photo-1592982537447-6f2a6a0a2f4c?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', phone: '+91 9876543211', status: 'Active' },
-  { id: 'f3', name: 'Anita Devi', field: 'Dairy & Eggs', location: 'Punjab', rating: 4.7, experience: '15 years', image: 'https://images.unsplash.com/photo-1551804791-5f102570077c?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', phone: '+91 9876543212', status: 'Active' },
-  { id: 'f4', name: 'Gopi Konangi', field: 'Grains & Pulses', location: 'Andhra Pradesh', rating: 5.0, experience: '20 years', image: 'https://images.unsplash.com/photo-1605000797499-95a51c5269ae?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', phone: '+91 9876543213', status: 'Active' },
-  { id: 'f5', name: 'Vikram Singh', field: 'Spices & Herbs', location: 'Kerala', rating: 4.6, experience: '5 years', image: 'https://images.unsplash.com/photo-1589923188900-85dae523342b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', phone: '+91 9876543214', status: 'Inactive' }
+  { id: 'f1', name: 'Kotesh', field: 'Fruits Specialist', location: 'Guntur, Andhra Pradesh', rating: 4.9, experience: '15 years', image: '/farmers/kotesh.jpg', phone: '+91 9848022338', status: 'Active' },
+  { id: 'f2', name: 'Krishnayya', field: 'Organic Vegetables', location: 'Mysore, Karnataka', rating: 4.8, experience: '12 years', image: '/farmers/krishnayya.jpg', phone: '+91 9848011223', status: 'Active' },
+  { id: 'f3', name: 'Rajendra', field: 'Grains & Ghee Specialist', location: 'Amritsar, Punjab', rating: 4.7, experience: '18 years', image: '/farmers/rajendra.jpg', phone: '+91 9848033445', status: 'Active' },
+  { id: 'f4', name: 'Rambabu', field: 'Leafy Greens Specialist', location: 'Ratnagiri, Maharashtra', rating: 5.0, experience: '20 years', image: '/farmers/rambabu.jpg', phone: '+91 9848055667', status: 'Active' }
 ];
 
 app.get("/api/farmers", async (req, res) => {

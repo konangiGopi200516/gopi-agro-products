@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Search, Filter, SlidersHorizontal, X, ShoppingBasket } from 'lucide-react';
 import { useProductContext } from '../context/ProductContext';
@@ -8,8 +8,13 @@ const Products = () => {
   const { products } = useProductContext();
   const [searchParams, setSearchParams] = useSearchParams();
   
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
   const [sortBy, setSortBy] = useState('featured');
+
+  // Synchronize state when the search URL parameter changes
+  useEffect(() => {
+    setSearchTerm(searchParams.get('search') || '');
+  }, [searchParams]);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
   const categoryFilter = searchParams.get('category');

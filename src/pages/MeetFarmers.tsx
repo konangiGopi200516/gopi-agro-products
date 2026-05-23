@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Users, MapPin, Star, Phone, Activity } from 'lucide-react';
 import { API_BASE } from '../services/api';
 
 const MeetFarmers = () => {
+  const navigate = useNavigate();
   const [farmers, setFarmers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -76,7 +78,10 @@ const MeetFarmers = () => {
                   </div>
                 </div>
 
-                <button className="w-full py-2.5 bg-[#2D6A4F]/10 text-[#2D6A4F] font-semibold rounded-xl hover:bg-[#2D6A4F] hover:text-white transition-colors duration-300">
+                <button 
+                  onClick={() => navigate(`/products?search=${encodeURIComponent(farmer.name)}`)}
+                  className="w-full py-2.5 bg-[#2D6A4F]/10 text-[#2D6A4F] font-semibold rounded-xl hover:bg-[#2D6A4F] hover:text-white transition-colors duration-300"
+                >
                   View Products
                 </button>
               </div>
