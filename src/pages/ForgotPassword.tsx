@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { API_BASE } from '../services/api';
 
 const ForgotPassword = () => {
   const [identifier, setIdentifier] = useState('');
@@ -13,7 +14,7 @@ const ForgotPassword = () => {
     setLoading(true);
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL || '/api'}/auth/forgot-password`, {
+      const res = await fetch(`${API_BASE}/auth/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier })

@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Users, MapPin, Star, Phone, Activity } from 'lucide-react';
+import { API_BASE } from '../services/api';
 
 const MeetFarmers = () => {
   const [farmers, setFarmers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL || '/api'}/farmers`)
+    fetch(`${API_BASE}/farmers`)
       .then(res => res.json())
       .then(data => {
         setFarmers(data);

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { API_BASE } from '../services/api';
 import { toast } from 'react-hot-toast';
 
 const Login = () => {
@@ -18,7 +19,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/auth/login`, {
+      const res = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier, password })

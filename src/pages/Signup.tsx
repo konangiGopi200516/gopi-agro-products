@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { API_BASE } from '../services/api';
 import { toast } from 'react-hot-toast';
 
 const Signup = () => {
@@ -36,7 +37,7 @@ const Signup = () => {
 
     setLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/auth/register`, {
+      const res = await fetch(`${API_BASE}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
