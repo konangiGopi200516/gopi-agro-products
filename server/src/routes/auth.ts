@@ -259,12 +259,15 @@ router.post(
 const getTransporter = () => {
   if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
     return nodemailer.createTransport({
-      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
-    });
+      family: 4 // Force IPv4 to prevent ENETUNREACH IPv6 errors in cloud environments like Render
+    } as any);
   }
   return null;
 };
