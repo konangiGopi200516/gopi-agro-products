@@ -125,11 +125,8 @@ export default function Checkout() {
         setSuccessBrief(true);
         clearCart();
         setTimeout(() => navigate(`/order-success?order_id=${result.orderId}`), 1200);
-      } else if (paymentMethod === "UPI_QR") {
-        setSuccessBrief(true);
-        clearCart();
-        setTimeout(() => navigate(`/order-success?order_id=${result.orderId}`), 1200);
       } else {
+        // Both UPI and CARD will route through the robust Cashfree Drop-in UI
         const result = await createOnlineOrder(checkoutData);
         await initiatePayment({
           paymentSessionId: result.paymentSessionId,
