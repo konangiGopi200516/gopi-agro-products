@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, CheckCircle, Truck, Users, Shield, Apple, Carrot, Milk, Wheat } from 'lucide-react';
+import { ArrowRight, CheckCircle, Truck, Users, Shield, Apple, Carrot, Milk, Wheat, Leaf } from 'lucide-react';
 import { useProductContext } from '../context/ProductContext';
 import { ProductCard } from '../components/ProductCard';
 
@@ -64,7 +64,8 @@ const Home = () => {
               { name: 'Fruits', icon: <Apple size={18} /> },
               { name: 'Vegetables', icon: <Carrot size={18} /> },
               { name: 'Dairy', icon: <Milk size={18} /> },
-              { name: 'Grains', icon: <Wheat size={18} /> }
+              { name: 'Grains', icon: <Wheat size={18} /> },
+              { name: 'Spices & Herbs', icon: <Leaf size={18} /> }
             ].map((cat) => (
               <Link
                 key={cat.name}

@@ -19,7 +19,7 @@ const Products = () => {
 
   const categoryFilter = searchParams.get('category');
   
-  const categories = ['Fruits', 'Vegetables', 'Dairy', 'Grains'];
+  const categories = ['Fruits', 'Vegetables', 'Dairy', 'Grains', 'Spices & Herbs'];
 
   const handleCategoryChange = (category: string) => {
     if (categoryFilter === category) {
