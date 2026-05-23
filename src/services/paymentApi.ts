@@ -18,8 +18,14 @@ export async function createOnlineOrder(data: CheckoutData) {
     body: JSON.stringify(data),
   });
   if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error || "Failed to create order");
+    let errMessage = "Failed to create order";
+    try {
+      const err = await res.json();
+      errMessage = err.error || errMessage;
+    } catch (parseError) {
+      errMessage = "Backend server error. Please check if Vercel environment variables are configured correctly.";
+    }
+    throw new Error(errMessage);
   }
   return res.json(); // { orderId, paymentSessionId, cfOrderId }
 }
@@ -42,8 +48,14 @@ export async function createCODOrder(data: CheckoutData) {
     body: JSON.stringify(data),
   });
   if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error || "Failed to place COD order");
+    let errMessage = "Failed to place COD order";
+    try {
+      const err = await res.json();
+      errMessage = err.error || errMessage;
+    } catch (parseError) {
+      errMessage = "Backend server error. Please check if Vercel environment variables are configured correctly.";
+    }
+    throw new Error(errMessage);
   }
   return res.json();
 }
