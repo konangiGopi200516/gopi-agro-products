@@ -263,13 +263,30 @@ router.post(
       const { email } = req.body;
       if (!email) return res.status(400).json({ error: "Email required" });
 
-      // In development, just log the request. In production, send a real email.
+      const API_KEY = process.env.FIREBASE_API_KEY || "AIzaSyDE76TNNjVB_SM3jbpUS4ZwV1rzIZxRVVA";
+
       console.log(`Password reset requested for: ${email}`);
+
+      // Call Firebase REST API to send password reset email
+      const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${API_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          requestType: "PASSWORD_RESET",
+          email: email
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Firebase sendOobCode error:", errorData);
+      }
 
       await logAuthEvent(req, "FORGOT_PASSWORD", undefined, { email });
       // Always return success to prevent email enumeration
       res.json({ success: true });
     } catch (error) {
+      console.error("Forgot password handler error:", error);
       res.json({ success: true });
     }
   }
@@ -286,10 +303,7 @@ router.post(
         return res.status(400).json({ error: "Invalid input" });
       }
 
-      const API_KEY = process.env.FIREBASE_API_KEY;
-      if (!API_KEY) {
-        return res.status(500).json({ error: "Password reset is not configured" });
-      }
+      const API_KEY = process.env.FIREBASE_API_KEY || "AIzaSyDE76TNNjVB_SM3jbpUS4ZwV1rzIZxRVVA";
 
       const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:resetPassword?key=${API_KEY}`, {
         method: "POST",
