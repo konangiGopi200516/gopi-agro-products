@@ -588,5 +588,66 @@ export const seedProducts: Product[] = [
     "description": "Fresh white rice directly from the farm.",
     "imageUrl": "/Grains/White%20rice.jpg",
     "createdAt": "2026-05-16T07:02:49.232Z"
+  },
+  // ---- Spices ----
+  {
+    "id": "101",
+    "name": "Cumin",
+    "category": "Spices",
+    "price": 120,
+    "unit": "kg",
+    "stock": 200,
+    "farmerName": "Local Farmer",
+    "description": "Premium quality cumin seeds.",
+    "imageUrl": "/spi/cumin.jpg",
+    "createdAt": "2026-05-16T07:02:49.232Z"
+  },
+  {
+    "id": "102",
+    "name": "Turmeric",
+    "category": "Spices",
+    "price": 110,
+    "unit": "kg",
+    "stock": 180,
+    "farmerName": "Local Farmer",
+    "description": "Fresh turmeric powder.",
+    "imageUrl": "/spi/turmeric.jpg",
+    "createdAt": "2026-05-16T07:02:49.232Z"
+  },
+  {
+    "id": "103",
+    "name": "Coriander",
+    "category": "Spices",
+    "price": 115,
+    "unit": "kg",
+    "stock": 190,
+    "farmerName": "Local Farmer",
+    "description": "Fragrant coriander seeds.",
+    "imageUrl": "/spi/coriander.jpg",
+    "createdAt": "2026-05-16T07:02:49.232Z"
+  },
+  {
+    "id": "104",
+    "name": "Black Pepper",
+    "category": "Spices",
+    "price": 130,
+    "unit": "kg",
+    "stock": 150,
+    "farmerName": "Local Farmer",
+    "description": "Whole black peppercorns.",
+    "imageUrl": "/spi/black pepper.jpg",
+    "createdAt": "2026-05-16T07:02:49.232Z"
+  },
+  {
+    "id": "105",
+    "name": "Cardamom",
+    "category": "Spices",
+    "price": 140,
+    "unit": "kg",
+    "stock": 120,
+    "farmerName": "Local Farmer",
+    "description": "Green cardamom pods.",
+    "imageUrl": "/spi/cardamom.jpg",
+    "createdAt": "2026-05-16T07:02:49.232Z"
   }
 ];
