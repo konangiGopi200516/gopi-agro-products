@@ -257,57 +257,66 @@ router.post(
   }
 );
 
-const getTransporter = () => {
-  if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-    return nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 587,
-      secure: false, // Must be false for port 587 (STARTTLS)
-      requireTLS: true,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-      // Force IPv4 lookup explicitly using custom dns lookup to bypass Render IPv6 issues
-      lookup: (hostname: string, options: any, callback: any) => {
-        dns.lookup(hostname, { family: 4 }, callback);
-      }
-    } as any);
+const sendEmailViaResend = async (to: string, subject: string, htmlContent: string) => {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    throw new Error("RESEND_API_KEY environment variable is not configured.");
   }
-  return null;
+
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      from: "KisanMart <onboarding@resend.dev>",
+      to: to,
+      subject: subject,
+      html: htmlContent
+    })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || `Resend API returned status ${response.status}: ${JSON.stringify(errorData)}`);
+  }
+
+  return await response.json();
 };
 
 // GET /api/auth/test-email
 router.get("/test-email", async (req: express.Request, res: express.Response) => {
   try {
-    const transporter = getTransporter();
-    if (!transporter) {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
       return res.status(400).json({ 
-        error: "Nodemailer is not configured. EMAIL_USER or EMAIL_PASS environment variables are missing." 
+        error: "Resend is not configured. RESEND_API_KEY environment variable is missing on Render." 
       });
     }
 
     const testRecipient = (req.query.to as string) || "gopikonangi8@gmail.com";
-    console.log(`Sending Nodemailer test email to: ${testRecipient}...`);
+    console.log(`Sending Resend test email to: ${testRecipient}...`);
 
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: testRecipient,
-      subject: "Nodemailer Connection Test - KisanMart",
-      html: `
-        <div style="font-family: sans-serif; padding: 20px;">
-          <h2 style="color: #4CAF50;">🌱 KisanMart Nodemailer Test</h2>
-          <p>This is a test email confirming that Nodemailer is successfully configured on your Render server!</p>
-          <p>If you received this email, the Nodemailer integration is 100% correct!</p>
+    const result = await sendEmailViaResend(
+      testRecipient,
+      "Resend Connection Test - KisanMart",
+      `
+        <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px; max-width: 600px; margin: auto;">
+          <h2 style="color: #4CAF50; text-align: center;">🌱 KisanMart Resend Test</h2>
+          <p>This is a test email confirming that Resend HTTP API is successfully configured on your Render server!</p>
+          <p>Since this runs over standard HTTPS (port 443), it bypasses all Render SMTP port blocks perfectly!</p>
+          <hr style="border: 0; border-top: 1px solid #eee; margin-top: 20px;" />
+          <p style="font-size: 12px; color: #888; text-align: center;">The KisanMart Team</p>
         </div>
-      `,
-    });
+      `
+    );
 
-    res.json({ success: true, message: `Test email successfully sent to ${testRecipient}!` });
+    res.json({ success: true, message: `Test email successfully sent via Resend to ${testRecipient}!`, result });
   } catch (error: any) {
-    console.error("Nodemailer test route failed:", error);
+    console.error("Resend test route failed:", error);
     res.status(500).json({ 
-      error: error.message || "Failed to send test email", 
+      error: error.message || "Failed to send test email via Resend", 
       details: error.toString() 
     });
   }
@@ -337,16 +346,15 @@ router.post(
         console.warn("Failed to generate password reset link via Firebase Admin SDK:", adminError.message);
       }
 
-      const transporter = getTransporter();
-      if (transporter && oobCode) {
+      const hasResend = !!process.env.RESEND_API_KEY;
+      if (hasResend && oobCode) {
         const resetLink = `${clientUrl}/reset-password?oobCode=${oobCode}`;
         console.log(`Programmatic reset link generated: ${resetLink}`);
 
-        await transporter.sendMail({
-          from: process.env.EMAIL_USER,
-          to: email,
-          subject: "Password Reset Request - KisanMart",
-          html: `
+        await sendEmailViaResend(
+          email,
+          "Password Reset Request - KisanMart",
+          `
             <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
               <h2 style="color: #4CAF50; text-align: center;">🌱 KisanMart Password Reset</h2>
               <p>Hello,</p>
@@ -359,11 +367,11 @@ router.post(
               <hr style="border: 0; border-top: 1px solid #eee; margin-top: 30px;" />
               <p style="font-size: 12px; color: #888; text-align: center;">The KisanMart Team</p>
             </div>
-          `,
-        });
-        console.log(`Password reset email sent successfully via Nodemailer to ${email}`);
+          `
+        );
+        console.log(`Password reset email sent successfully via Resend API to ${email}`);
       } else {
-        console.log(`Nodemailer not configured or Admin SDK skipped. Falling back to default Firebase sendOobCode...`);
+        console.log(`Resend API not configured or Admin SDK skipped. Falling back to default Firebase sendOobCode...`);
         const API_KEY = process.env.FIREBASE_API_KEY || "AIzaSyDE76TNNjVB_SM3jbpUS4ZwV1rzIZxRVVA";
         const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${API_KEY}`, {
           method: "POST",
