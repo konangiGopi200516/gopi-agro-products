@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "seed": "ts-node server/src/seedFirebase.ts",
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
@@ -33,7 +34,8 @@
     "react-router-dom": "^7.15.1",
     "tailwindcss": "^4.3.0",
     "uuid": "^14.0.0",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "ts-node": "^10.9.2"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
