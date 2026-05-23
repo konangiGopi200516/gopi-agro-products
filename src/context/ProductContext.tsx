@@ -2,7 +2,7 @@ import React, { createContext, useState, useEffect, ReactNode, useContext } from
 import type { Product } from '../types';
 import { seedProducts } from '../data/seedProducts';
 
-const BASE = import.meta.env.PROD ? "/api" : (import.meta.env.VITE_API_URL || "http://localhost:5000/api");
+const BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 interface ProductContextType {
   products: Product[];
