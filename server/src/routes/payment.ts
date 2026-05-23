@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import { v4 as uuidv4 } from "uuid";
+import crypto from "crypto";
 import { db } from "../firebase";
 import { createCashfreeOrder, verifyCashfreeWebhook, fetchCashfreeOrderStatus } from "../services/cashfree";
 import { generateOTP, storeOTP, verifyOTP } from "../services/otp";
@@ -30,7 +30,7 @@ router.post("/create-order", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Invalid Indian phone number" });
     }
 
-    const orderId = `KM_${Date.now()}_${uuidv4().slice(0, 8).toUpperCase()}`;
+    const orderId = `KM_${Date.now()}_${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
     const clientUrl = process.env.CLIENT_URL || process.env.FRONTEND_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:5173");
     const serverUrl = process.env.BACKEND_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:5000");
 
@@ -245,7 +245,7 @@ router.post("/cod/create", async (req: Request, res: Response) => {
       });
     }
 
-    const orderId = `KM_COD_${Date.now()}_${uuidv4().slice(0, 6).toUpperCase()}`;
+    const orderId = `KM_COD_${Date.now()}_${crypto.randomUUID().slice(0, 6).toUpperCase()}`;
 
     const orderData = {
       orderId,
@@ -364,7 +364,7 @@ router.post("/upi/create", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    const orderId = `KM_UPI_${Date.now()}_${uuidv4().slice(0, 6).toUpperCase()}`;
+    const orderId = `KM_UPI_${Date.now()}_${crypto.randomUUID().slice(0, 6).toUpperCase()}`;
 
     const orderData = {
       orderId,
