@@ -1,8 +1,9 @@
 import express from "express";
-import { db } from "../firebase";
+import { db, admin } from "../firebase";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { authLimiter } from "../middleware/authMiddleware";
+import nodemailer from "nodemailer";
 
 const router = express.Router();
 
@@ -255,6 +256,19 @@ router.post(
   }
 );
 
+const getTransporter = () => {
+  if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+    return nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+  }
+  return null;
+};
+
 // POST /api/auth/forgot-password
 router.post(
   "/forgot-password",
@@ -263,27 +277,68 @@ router.post(
       const { email } = req.body;
       if (!email) return res.status(400).json({ error: "Email required" });
 
-      const API_KEY = process.env.FIREBASE_API_KEY || "AIzaSyDE76TNNjVB_SM3jbpUS4ZwV1rzIZxRVVA";
-
       console.log(`Password reset requested for: ${email}`);
 
-      // Call Firebase REST API to send password reset email
-      const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${API_KEY}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          requestType: "PASSWORD_RESET",
-          email: email
-        })
-      });
+      // Generate the password reset link programmatically using Firebase Admin SDK if possible
+      let oobCode = "";
+      const clientUrl = process.env.CLIENT_URL || "https://gopi-agro-products.vercel.app";
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Firebase sendOobCode error:", errorData);
+      try {
+        if (admin && typeof admin.auth === "function" && admin.apps.length > 0) {
+          const firebaseLink = await admin.auth().generatePasswordResetLink(email);
+          const urlObj = new URL(firebaseLink);
+          oobCode = urlObj.searchParams.get("oobCode") || "";
+        }
+      } catch (adminError: any) {
+        console.warn("Failed to generate password reset link via Firebase Admin SDK:", adminError.message);
+      }
+
+      const transporter = getTransporter();
+      if (transporter && oobCode) {
+        const resetLink = `${clientUrl}/reset-password?oobCode=${oobCode}`;
+        console.log(`Programmatic reset link generated: ${resetLink}`);
+
+        await transporter.sendMail({
+          from: process.env.EMAIL_USER,
+          to: email,
+          subject: "Password Reset Request - KisanMart",
+          html: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+              <h2 style="color: #4CAF50; text-align: center;">🌱 KisanMart Password Reset</h2>
+              <p>Hello,</p>
+              <p>We received a request to reset your password for your KisanMart account. Click the button below to choose a new one:</p>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${resetLink}" style="background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; font-weight: bold; border-radius: 5px; display: inline-block;">Reset Password</a>
+              </div>
+              <p>This password reset link will expire shortly.</p>
+              <p>If you did not request a password reset, please ignore this email.</p>
+              <hr style="border: 0; border-top: 1px solid #eee; margin-top: 30px;" />
+              <p style="font-size: 12px; color: #888; text-align: center;">The KisanMart Team</p>
+            </div>
+          `,
+        });
+        console.log(`Password reset email sent successfully via Nodemailer to ${email}`);
+      } else {
+        console.log(`Nodemailer not configured or Admin SDK skipped. Falling back to default Firebase sendOobCode...`);
+        const API_KEY = process.env.FIREBASE_API_KEY || "AIzaSyDE76TNNjVB_SM3jbpUS4ZwV1rzIZxRVVA";
+        const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${API_KEY}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            requestType: "PASSWORD_RESET",
+            email: email
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("Firebase sendOobCode error:", errorData);
+        } else {
+          console.log(`Fallback default Firebase reset email queued successfully for ${email}`);
+        }
       }
 
       await logAuthEvent(req, "FORGOT_PASSWORD", undefined, { email });
-      // Always return success to prevent email enumeration
       res.json({ success: true });
     } catch (error) {
       console.error("Forgot password handler error:", error);

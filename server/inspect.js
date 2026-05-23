@@ -9,18 +9,17 @@ if (!admin.apps.length) {
   });
 }
 
-const db = admin.database();
-
 async function run() {
-  const snapshot = await db.ref("products").once("value");
-  const data = snapshot.val();
-  if (data) {
-    for (const key of Object.keys(data)) {
-      if (data[key].name.toLowerCase().includes("kiwi")) {
-        console.log("Kiwi product found:", JSON.stringify(data[key], null, 2));
-      }
-    }
+  const email = "gopikonangi8@gmail.com";
+  console.log(`Generating programmatic password reset link for: ${email}...`);
+  try {
+    const link = await admin.auth().generatePasswordResetLink(email);
+    console.log(`✅ Success! Reset Link:`);
+    console.log(link);
+  } catch (error) {
+    console.error("Failed to generate link:", error);
   }
+
   process.exit(0);
 }
 
