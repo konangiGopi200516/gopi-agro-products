@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { useAuthContext } from '../context/AuthContext';
 
 const OTPVerification = () => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -59,7 +58,7 @@ const OTPVerification = () => {
     
     setLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL || '/api'}/auth/verify-otp`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/auth/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, otp: otpString, type })
@@ -87,7 +86,7 @@ const OTPVerification = () => {
   const handleResend = async () => {
     setResending(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL || '/api'}/auth/resend-otp`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/auth/resend-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, type })

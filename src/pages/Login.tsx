@@ -2,15 +2,12 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { useAuthContext } from '../context/AuthContext';
 
 const Login = () => {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  
-  const auth = useAuthContext();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -21,7 +18,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL || '/api'}/auth/login`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier, password })
