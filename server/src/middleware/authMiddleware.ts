@@ -5,7 +5,7 @@ import { admin } from '../firebase'; // Assuming admin is exported from firebase
 // Rate limiter for auth endpoints (100 attempts per 15 min for safe testing and usage)
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: 100,
   message: 'Too many requests from this IP, please try again after 15 minutes',
   legacyHeaders: false,
 });
