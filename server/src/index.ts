@@ -210,7 +210,8 @@ const seedFarmers = [
   { id: 'f11', name: 'Ramgopal', field: 'Fruits Specialist', location: 'Kakinada, Andhra Pradesh', rating: 4.7, experience: '8 years', image: '/farmers/ramgopal.jpg', phone: '+91 9848034567', status: 'Active' },
   { id: 'f12', name: 'Rangaiah', field: 'Exotic Vegetables', location: 'Kavali, Andhra Pradesh', rating: 4.8, experience: '15 years', image: '/farmers/rangaiah.jpg', phone: '+91 9848045678', status: 'Active' },
   { id: 'f13', name: 'Ranga Rao', field: 'Fruits & Berries Expert', location: 'Visakhapatnam, Andhra Pradesh', rating: 4.9, experience: '13 years', image: '/farmers/rangarao.jpg', phone: '+91 9848056789', status: 'Active' },
-  { id: 'f14', name: 'Subba Rao', field: 'Organic Farm Expert', location: 'Eluru, Andhra Pradesh', rating: 5.0, experience: '22 years', image: '/farmers/subbarao.jpg', phone: '+91 9848067890', status: 'Active' }
+  { id: 'f14', name: 'Subba Rao', field: 'Organic Farm Expert', location: 'Eluru, Andhra Pradesh', rating: 5.0, experience: '22 years', image: '/farmers/subbarao.jpg', phone: '+91 9848067890', status: 'Active' },
+  { id: 'f15', name: 'Sethuram', field: 'Organic Spices & Fruits', location: 'Chittoor, Andhra Pradesh', rating: 4.8, experience: '17 years', image: '/farmers/sethuram.jpg', phone: '+91 9848078901', status: 'Active' }
 ];
 
 app.get("/api/farmers", async (req, res) => {
