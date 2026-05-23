@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ShoppingBag, CreditCard, Truck, CheckCircle, MapPin, Phone,
-  Mail, User, Shield, Loader2, Banknote, Wifi,
+  Mail, User, Shield, Loader2, Banknote, Wifi, Lock
 } from "lucide-react";
 import { useCartContext, FREE_DELIVERY_THRESHOLD, DELIVERY_FEE } from "../context/CartContext";
 import { AppContext } from "../context/AppContext";
@@ -170,8 +170,8 @@ export default function Checkout() {
     if (successBrief) return "✓ Order Placed!";
     if (isLoading) return "Processing…";
     if (paymentMethod === "COD") return `Place Order — ₹${total.toFixed(0)} on Delivery`;
-    if (paymentMethod === "UPI_QR") return `Generate QR Code — ₹${total.toFixed(0)}`;
-    return `Pay ₹${total.toFixed(0)} Online`;
+    if (paymentMethod === "UPI_QR") return `Pay ₹${total.toFixed(0)} via UPI QR`;
+    return `Pay ₹${total.toFixed(0)} Securely`;
   };
 
   const ctaBg = () => {
@@ -400,9 +400,20 @@ export default function Checkout() {
                   {successBrief && <CheckCircle size={18} />}
                   {ctaLabel()}
                 </button>
-                <p className="text-center text-[11px] text-gray-400 mt-3 flex items-center justify-center gap-1">
-                  <Shield size={12} /> Your data is encrypted & secure
-                </p>
+                <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between gap-2 px-2">
+                  <div className="flex flex-col items-center gap-1 text-[10px] font-semibold text-gray-500">
+                    <Shield size={16} className="text-green-600" />
+                    <span>PCI DSS</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1 text-[10px] font-semibold text-gray-500">
+                    <Lock size={16} className="text-gray-400" />
+                    <span>256-bit SSL</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1 text-[10px] font-semibold text-gray-500">
+                    <CheckCircle size={16} className="text-blue-500" />
+                    <span>100% Secure</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
