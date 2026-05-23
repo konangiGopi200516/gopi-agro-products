@@ -120,6 +120,6 @@ try {
   }
 }
 
-export const db = isMock ? { ref: (pathString: string) => new MockDbRef(pathString) } : admin.database();
-export const auth = isMock ? {} as any : admin.auth();
+export const db = (isMock ? { ref: (pathString: string) => new MockDbRef(pathString) } : admin.database()) as any;
+export const auth = (isMock ? {} as any : admin.auth()) as any;
 export { admin };

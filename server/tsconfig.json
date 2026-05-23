@@ -9,5 +9,5 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "exclude": ["node_modules", "prisma", "src/controllers/authController.ts", "src/routes/auth.ts"]
+  "exclude": ["node_modules", "prisma", "src/controllers/authController.ts"]
 }
