@@ -1,13 +1,16 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import { useAuthContext } from '../context/AuthContext';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const auth = useContext(AuthContext);
+  
+  const auth = useAuthContext();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -15,84 +18,102 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth) return;
+    setLoading(true);
 
     try {
-      setError('');
-      setLoading(true);
-      await auth.login(email, password);
-      navigate(from, { replace: true });
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL || '/api'}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier, password })
+      });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || "Login failed");
+
+      // Replace context login with JWT save logic
+      // In a real app, you would pass data.accessToken to AuthContext to save.
+      // For now, we mock the local save for compatibility:
+      localStorage.setItem('kisanmart_token', data.accessToken);
+      localStorage.setItem('kisanmart_user', JSON.stringify(data.user));
+      
+      // Update Context state manually if needed or let a useEffect handle it
+      window.location.href = from; // Hard refresh to sync context with localStorage
     } catch (err: any) {
-      setError(err.message || 'Failed to login');
+      toast.error(err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-md border border-gray-100">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Or{' '}
-            <Link to="/signup" className="font-medium text-[#2D6A4F] hover:text-[#1b4332]">
-              create a new account
-            </Link>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-extrabold text-gray-900">Welcome Back</h2>
+          <p className="mt-2 text-sm text-gray-600">
+            Don't have an account? <Link to="/signup" className="font-medium text-[#2D6A4F] hover:underline">Sign up</Link>
           </p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="bg-red-50 text-red-500 p-3 rounded-md text-sm text-center">
-              {error}
-            </div>
-          )}
-          <div className="rounded-md shadow-sm space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="email">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#2D6A4F] focus:border-[#2D6A4F] sm:text-sm"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="password">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#2D6A4F] focus:border-[#2D6A4F] sm:text-sm"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
+
+        {location.state?.message && (
+          <div className="mb-4 p-3 bg-green-50 text-green-700 text-sm rounded-lg text-center font-medium">
+            {location.state.message}
+          </div>
+        )}
+
+        <form className="space-y-5" onSubmit={handleSubmit}>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Email or Mobile Number</label>
+            <input 
+              type="text" 
+              required 
+              value={identifier} 
+              onChange={(e) => setIdentifier(e.target.value)} 
+              className="mt-1 block w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-[#2D6A4F] focus:border-[#2D6A4F]" 
+              placeholder="john@example.com or 9876543210" 
+            />
           </div>
 
           <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-[#2D6A4F] hover:bg-[#1b4332] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2D6A4F] disabled:opacity-50 transition-colors"
-            >
-              {loading ? 'Signing in...' : 'Sign in'}
-            </button>
+            <label className="block text-sm font-medium text-gray-700">Password</label>
+            <div className="mt-1 relative rounded-xl shadow-sm">
+              <input 
+                type={showPassword ? "text" : "password"} 
+                required 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+                className="block w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-[#2D6A4F] focus:border-[#2D6A4F]" 
+                placeholder="••••••••" 
+              />
+              <button 
+                type="button" 
+                onClick={() => setShowPassword(!showPassword)} 
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
+            <div className="flex justify-end mt-2">
+              <Link to="/forgot-password" className="text-sm font-medium text-[#2D6A4F] hover:underline">
+                Forgot password?
+              </Link>
+            </div>
           </div>
+
+          <div className="flex items-center">
+            <input id="remember" type="checkbox" className="h-4 w-4 text-[#2D6A4F] focus:ring-[#2D6A4F] border-gray-300 rounded" />
+            <label htmlFor="remember" className="ml-2 block text-sm text-gray-900">
+              Remember me for 30 days
+            </label>
+          </div>
+
+          <button 
+            type="submit" 
+            disabled={loading} 
+            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-[#2D6A4F] hover:bg-[#1b4332] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2D6A4F] disabled:opacity-50"
+          >
+            {loading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Log In'}
+          </button>
         </form>
       </div>
     </div>

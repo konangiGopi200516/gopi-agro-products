@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom
 import { Navbar } from './components/Navbar';
 import { ProductProvider } from './context/ProductContext';
 import { CartProvider } from './context/CartContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 const Home = lazy(() => import('./pages/Home'));
 const Products = lazy(() => import('./pages/Products'));
@@ -18,6 +19,12 @@ const MyOrders = lazy(() => import('./pages/MyOrders'));
 const Admin = lazy(() => import('./pages/Admin'));
 const AdminOrders = lazy(() => import('./pages/AdminOrders'));
 const AdminProducts = lazy(() => import('./pages/AdminProducts'));
+const Login = lazy(() => import('./pages/Login'));
+const Signup = lazy(() => import('./pages/Signup'));
+const Welcome = lazy(() => import('./pages/Welcome'));
+const OTPVerification = lazy(() => import('./pages/OTPVerification'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 
 const LoadingSpinner = () => (
   <div className="min-h-screen flex items-center justify-center bg-[var(--color-surface)]">
@@ -48,16 +55,22 @@ function App() {
             <Routes>
               <Route path="/" element={<Layout />}>
                 <Route index element={<Home />} />
+                <Route path="welcome" element={<Welcome />} />
                 <Route path="products" element={<Products />} />
                 <Route path="product/:id" element={<ProductDetail />} />
                 <Route path="cart" element={<Cart />} />
-                <Route path="checkout" element={<Checkout />} />
-                <Route path="order-success" element={<OrderSuccess />} />
+                <Route path="checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+                <Route path="order-success" element={<ProtectedRoute><OrderSuccess /></ProtectedRoute>} />
                 <Route path="payment-status" element={<PaymentStatus />} />
                 <Route path="payment/success" element={<PaymentSuccess />} />
                 <Route path="payment/failed" element={<PaymentFailed />} />
-                <Route path="order-confirmation/:orderId" element={<OrderConfirmation />} />
-                <Route path="my-orders" element={<MyOrders />} />
+                <Route path="order-confirmation/:orderId" element={<ProtectedRoute><OrderConfirmation /></ProtectedRoute>} />
+                <Route path="my-orders" element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
+                <Route path="login" element={<Login />} />
+                <Route path="signup" element={<Signup />} />
+                <Route path="verify-otp" element={<OTPVerification />} />
+                <Route path="forgot-password" element={<ForgotPassword />} />
+                <Route path="reset-password" element={<ResetPassword />} />
                 <Route path="admin" element={<Admin />} />
                 <Route path="admin/orders" element={<AdminOrders />} />
                 <Route path="admin/products" element={<AdminProducts />} />
