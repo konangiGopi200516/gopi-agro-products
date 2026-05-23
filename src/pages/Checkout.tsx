@@ -38,7 +38,7 @@ export default function Checkout() {
   const currentUser = state.currentUser;
   const { initiatePayment, loading: paymentLoading } = useCashfreePayment();
 
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("ONLINE");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("UPI");
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successBrief, setSuccessBrief] = useState(false);
