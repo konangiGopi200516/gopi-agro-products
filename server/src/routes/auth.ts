@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { authLimiter } from "../middleware/authMiddleware";
 import nodemailer from "nodemailer";
+import dns from "dns";
 
 const router = express.Router();
 
@@ -267,7 +268,10 @@ const getTransporter = () => {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
-      family: 4 // Force IPv4 to prevent ENETUNREACH IPv6 errors in cloud environments like Render
+      // Force IPv4 lookup explicitly using custom dns lookup to bypass Render IPv6 issues
+      lookup: (hostname: string, options: any, callback: any) => {
+        dns.lookup(hostname, { family: 4 }, callback);
+      }
     } as any);
   }
   return null;
