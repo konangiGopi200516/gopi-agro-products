@@ -150,9 +150,14 @@ app.get("/api/products", async (req, res) => {
     
     let products = Object.keys(data).map(k => ({ id: k, ...data[k] }));
 
-    // Normalize farmer names: Each farmer gets 2-4 products, rest are 'Local Farmer'
-    const activeFarmers = ['Kotesh', 'Krishnayya', 'Rajendra', 'Rambabu', 'Balaram'];
-    const farmerLimits = [3, 4, 2, 4, 3]; // Specific counts for each farmer
+    // Normalize farmer names: Each of the 15 farmers gets 2-4 products, rest are 'Local Farmer'
+    const activeFarmers = [
+      'Kotesh', 'Krishnayya', 'Rajendra', 'Rambabu', 'Balaram',
+      'Jakkana', 'Janardhan', 'Lingaiah', 'Raghu Varma', 'Raja Rao',
+      'Ramgopal', 'Rangaiah', 'Ranga Rao', 'Subba Rao', 'Sethuram'
+    ];
+    // Specific counts for each of the 15 farmers (mixture of 2, 3, and 4)
+    const farmerLimits = [3, 4, 2, 4, 3, 2, 3, 4, 3, 2, 4, 2, 3, 4, 3];
     
     let currentFarmerIndex = 0;
     let productsAssignedToCurrent = 0;
