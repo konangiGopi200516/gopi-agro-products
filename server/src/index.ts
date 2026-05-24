@@ -456,8 +456,8 @@ app.put("/api/orders/:orderId/status", async (req, res) => {
     const userSnap = await db.ref(`users/${order.uid}`).once('value');
     const user = userSnap.val();
 
-    const targetEmail = order.userEmail || order.email || user?.email || process.env.MAIL_USER || "gopikonangi8@gmail.com";
-    const targetName = order.userName || order.buyerName || user?.name || "Customer";
+    const targetEmail = order.customerEmail || order.userEmail || order.email || user?.email || process.env.MAIL_USER || "gopikonangi8@gmail.com";
+    const targetName = order.customerName || order.userName || order.buyerName || user?.name || "Customer";
     const cleanOrderId = order.orderId || orderId;
 
     console.log(`[STATUS UPDATE API] Order: ${cleanOrderId}, New Status: ${status}, Recipient: ${targetEmail}`);
