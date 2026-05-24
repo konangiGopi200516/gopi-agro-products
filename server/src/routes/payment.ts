@@ -265,7 +265,8 @@ router.post("/cod/create", async (req: Request, res: Response) => {
       return newObj;
     };
     await db.ref(`orders/${orderId}`).set(sanitizeForFirebase(orderData));
-    await sendOrderConfirmationEmail({
+    // Run email sending asynchronously to prevent slow checkouts
+    sendOrderConfirmationEmail({
       to: customerEmail,
       customerName,
       orderId,
