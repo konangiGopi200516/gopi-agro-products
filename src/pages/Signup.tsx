@@ -103,7 +103,11 @@ const Signup = () => {
 
       const data = response.data;
       if (data.accessToken) {
-        localStorage.setItem('kisanmart_token', data.accessToken);
+        localStorage.setItem('kisanmart_accessToken', data.accessToken);
+        localStorage.setItem('kisanmart_token', data.accessToken); // legacy fallback
+      }
+      if (data.refreshToken) {
+        localStorage.setItem('kisanmart_refreshToken', data.refreshToken);
       }
       if (data.user) {
         localStorage.setItem('kisanmart_user', JSON.stringify(data.user));

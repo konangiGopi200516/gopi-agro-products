@@ -60,7 +60,8 @@ router.get("/csrf", (req, res) => {
 
 // GET /api/auth/me — Restore Session
 router.get("/me", async (req, res) => {
-  const token = req.cookies?.accessToken;
+  const authHeader = req.headers.authorization;
+  const token = req.cookies?.accessToken || (authHeader && authHeader.split(" ")[1]);
   if (!token) return res.status(401).json({ error: "Unauthenticated" });
 
   try {
@@ -77,13 +78,13 @@ router.get("/me", async (req, res) => {
 
 // POST /api/auth/refresh — Refresh Tokens
 router.post("/refresh", async (req, res) => {
-  const refreshToken = req.cookies?.refreshToken;
+  const refreshToken = req.cookies?.refreshToken || req.body.refreshToken;
   if (!refreshToken) return res.status(401).json({ error: "No refresh token" });
 
   try {
     const decoded: any = jwt.verify(refreshToken, REFRESH_SECRET);
-    setAuthCookies(res, decoded.uid);
-    res.json({ success: true });
+    const tokens = setAuthCookies(res, decoded.uid);
+    res.json({ success: true, accessToken: tokens.accessToken, refreshToken: tokens.refreshToken });
   } catch (error) {
     res.cookie("accessToken", "", { maxAge: 0 });
     res.cookie("refreshToken", "", { maxAge: 0 });
@@ -154,7 +155,7 @@ router.post(
 
       // Don't send password hash to client
       const { passwordHash, ...safeUser } = user;
-      res.json({ user: safeUser, accessToken: tokens.accessToken });
+      res.json({ user: safeUser, accessToken: tokens.accessToken, refreshToken: tokens.refreshToken });
     } catch (error: any) {
       console.error("Login error:", error);
       res.status(500).json({ error: "Internal server error" });
@@ -249,7 +250,7 @@ router.post(
 
       const tokens = setAuthCookies(res, uid);
       const { passwordHash, ...safeUser } = userDoc;
-      res.json({ user: safeUser, accessToken: tokens.accessToken });
+      res.json({ user: safeUser, accessToken: tokens.accessToken, refreshToken: tokens.refreshToken });
     } catch (error: any) {
       console.error("Google auth error:", error);
       res.status(401).json({ error: "Google login failed" });

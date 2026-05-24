@@ -111,7 +111,7 @@ router.post("/webhook", express.raw({ type: "application/json" }), async (req: R
     // -------- PAYMENT SUCCESS --------
     if (type === "PAYMENT_SUCCESS_WEBHOOK") {
       const cfOrderId = data.order.order_id;
-      const orderSnap = await db.ref(`orders/${cfOrderId}`).get();
+      const orderSnap = await db.ref(`orders/${cfOrderId}`).once('value');
       if (!orderSnap.exists()) {
         console.error(`[webhook] Order ${cfOrderId} not found`);
         return res.status(200).json({ received: true });
@@ -132,7 +132,7 @@ router.post("/webhook", express.raw({ type: "application/json" }), async (req: R
         const itemId = item.id || item.product?.id || item.productId;
         if (itemId) {
           const productRef = db.ref(`products/${itemId}/stock`);
-          const snap = await productRef.get();
+          const snap = await productRef.once('value');
           if (snap.exists()) {
             const newStock = Math.max(0, snap.val() - item.quantity);
             await productRef.set(newStock);
@@ -162,7 +162,7 @@ router.post("/webhook", express.raw({ type: "application/json" }), async (req: R
         updatedAt: new Date().toISOString(),
       });
 
-      const orderSnap = await db.ref(`orders/${cfOrderId}`).get();
+      const orderSnap = await db.ref(`orders/${cfOrderId}`).once('value');
       if (orderSnap.exists()) {
         const order = orderSnap.val();
         await sendPaymentFailedEmail({
@@ -324,7 +324,7 @@ router.post("/cod/verify-otp", async (req: Request, res: Response) => {
 router.post("/cod/resend-otp", async (req: Request, res: Response) => {
   try {
     const { orderId } = req.body;
-    const orderSnap = await db.ref(`orders/${orderId}`).get();
+    const orderSnap = await db.ref(`orders/${orderId}`).once('value');
     if (!orderSnap.exists()) return res.status(404).json({ error: "Order not found" });
     const order = orderSnap.val();
     const newOtp = generateOTP();
@@ -375,7 +375,7 @@ router.post("/upi/create", async (req: Request, res: Response) => {
       const itemId = item.id || item.product?.id || item.productId;
       if (itemId) {
         const productRef = db.ref(`products/${itemId}/stock`);
-        const snap = await productRef.get();
+        const snap = await productRef.once('value');
         if (snap.exists()) {
           const newStock = Math.max(0, snap.val() - item.quantity);
           await productRef.set(newStock);

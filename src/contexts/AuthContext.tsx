@@ -75,6 +75,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_LOADING' });
     try {
       const response = await api.post('/auth/login', { email, password });
+      if (response.data.accessToken) {
+        localStorage.setItem('kisanmart_accessToken', response.data.accessToken);
+      }
+      if (response.data.refreshToken) {
+        localStorage.setItem('kisanmart_refreshToken', response.data.refreshToken);
+      }
       dispatch({ type: 'SET_USER', payload: response.data.user });
     } catch (error) {
       dispatch({ type: 'SET_UNAUTHENTICATED' });
@@ -88,8 +94,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error("Logout failed", error);
     } finally {
-      localStorage.removeItem('kisanmart_token');
-      localStorage.removeItem('kisanmart_user');
+      localStorage.removeItem('kisanmart_token'); // Legacy
+      localStorage.removeItem('kisanmart_user'); // Legacy
+      localStorage.removeItem('kisanmart_accessToken');
+      localStorage.removeItem('kisanmart_refreshToken');
       dispatch({ type: 'SET_UNAUTHENTICATED' });
     }
   };
