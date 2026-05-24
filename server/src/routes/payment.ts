@@ -279,7 +279,7 @@ router.post("/cod/create", async (req: Request, res: Response) => {
       const itemId = item.id || item.product?.id || item.productId;
       if (itemId) {
         const productRef = db.ref(`products/${itemId}/stock`);
-        const snap = await productRef.get();
+        const snap = await productRef.once('value');
         if (snap.exists()) {
           const currentStock = Number(snap.val()) || 0;
           const quantityToDeduct = Number(item.quantity) || 0;
