@@ -10,9 +10,8 @@ const ENV = IS_PROD ? CFEnvironment.PRODUCTION : CFEnvironment.SANDBOX;
 console.log(`[Cashfree] Initialized in ${IS_PROD ? "PRODUCTION" : "SANDBOX"} mode`);
 console.log(`[Cashfree] App ID: ${APP_ID.slice(0, 10)}...`);
 
-Cashfree.XClientId = APP_ID;
-Cashfree.XClientSecret = SECRET_KEY;
-Cashfree.XEnvironment = IS_PROD ? Cashfree.Environment.PRODUCTION : Cashfree.Environment.SANDBOX;
+// Create an instance with constructor: new Cashfree(environment, appId, secretKey)
+const cashfree = new Cashfree(ENV, APP_ID, SECRET_KEY);
 
 export interface CreateOrderParams {
   orderId: string;
@@ -61,7 +60,7 @@ export async function createCashfreeOrder(params: CreateOrderParams) {
   console.log(`[Cashfree] Creating order: ${params.orderId}, amount: ₹${orderPayload.order_amount}, phone: ${cleanPhone}`);
 
   try {
-    const response = await Cashfree.PGCreateOrder("2023-08-01", orderPayload);
+    const response = await cashfree.PGCreateOrder(orderPayload);
     console.log(`[Cashfree] ✅ Order created. Session ID: ${response.data.payment_session_id?.slice(0, 20)}...`);
     return response.data;
   } catch (error: any) {
@@ -90,7 +89,7 @@ export async function verifyCashfreeWebhook(
 
 export async function fetchCashfreeOrderStatus(orderId: string) {
   try {
-    const response = await Cashfree.PGFetchOrder("2023-08-01", orderId);
+    const response = await cashfree.PGFetchOrder(orderId);
     return response.data;
   } catch (error: any) {
     console.error(`[Cashfree] Failed to fetch order status for ${orderId}:`, error?.response?.data || error.message);
