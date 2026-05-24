@@ -135,17 +135,16 @@ app.get("/api/products", async (req, res) => {
   const { category, search, featured } = req.query;
   try {
     const snapshot = await db.ref('products').once('value');
-    let data = snapshot.val();
+    let data = snapshot.val() || {};
     
-    if (!data) {
-      // Seed products if empty
-      for (const p of seedProducts) {
+    // Sync any missing products from seedProducts
+    let missingFound = false;
+    for (const p of seedProducts) {
+      if (!data[p.id]) {
         await db.ref(`products/${p.id}`).set(p);
+        data[p.id] = p;
+        missingFound = true;
       }
-      data = seedProducts.reduce((acc: any, p: any) => {
-        acc[p.id] = p;
-        return acc;
-      }, {});
     }
     
     let products = Object.keys(data).map(k => ({ id: k, ...data[k] }));
