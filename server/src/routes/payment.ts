@@ -141,7 +141,7 @@ router.post("/webhook", express.raw({ type: "application/json" }), async (req: R
       }
 
       // Send confirmation email (use internalOrderId for reference)
-      await sendOrderConfirmationEmail({
+      sendOrderConfirmationEmail({
         to: order.customerEmail,
         customerName: order.customerName,
         orderId: order.internalOrderId,
@@ -165,7 +165,7 @@ router.post("/webhook", express.raw({ type: "application/json" }), async (req: R
       const orderSnap = await db.ref(`orders/${cfOrderId}`).once('value');
       if (orderSnap.exists()) {
         const order = orderSnap.val();
-        await sendPaymentFailedEmail({
+        sendPaymentFailedEmail({
           to: order.customerEmail,
           customerName: order.customerName,
           orderId: order.internalOrderId,
@@ -330,7 +330,7 @@ router.post("/cod/resend-otp", async (req: Request, res: Response) => {
     const order = orderSnap.val();
     const newOtp = generateOTP();
     await storeOTP(orderId, newOtp);
-    await sendCODOTPEmail({
+    sendCODOTPEmail({
       to: order.customerEmail,
       customerName: order.customerName,
       orderId,
@@ -383,7 +383,7 @@ router.post("/upi/create", async (req: Request, res: Response) => {
         }
       }
     }
-    await sendOrderConfirmationEmail({
+    sendOrderConfirmationEmail({
       to: customerEmail,
       customerName,
       orderId,
@@ -436,7 +436,7 @@ router.get("/verify-order", async (req: Request, res: Response) => {
           }
           // Send confirmation email
           if (order.customerEmail) {
-            await sendOrderConfirmationEmail({
+            sendOrderConfirmationEmail({
               to: order.customerEmail,
               customerName: order.customerName,
               orderId: order.internalOrderId,
