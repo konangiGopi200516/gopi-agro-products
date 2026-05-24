@@ -150,14 +150,24 @@ app.get("/api/products", async (req, res) => {
     
     let products = Object.keys(data).map(k => ({ id: k, ...data[k] }));
 
-    // Normalize farmer names (migrate from 'Local Farmer' to real farmers)
+    // Normalize farmer names: Each farmer gets exactly 4 products, rest are 'Local Farmer'
     const activeFarmers = ['Kotesh', 'Krishnayya', 'Rajendra', 'Rambabu', 'Balaram'];
-    let needsUpdate = false;
+    const maxPerFarmer = 4;
+    const farmerCounts: Record<string, number> = {};
+    activeFarmers.forEach(f => farmerCounts[f] = 0);
+
     products = products.map((p, i) => {
-      if (p.farmerName === 'Local Farmer') {
-        p.farmerName = activeFarmers[i % activeFarmers.length];
-        db.ref(`products/${p.id}`).update({ farmerName: p.farmerName }).catch(() => {});
-        needsUpdate = true;
+      let targetFarmer = 'Local Farmer';
+      
+      // Assign to a real farmer if they haven't reached their limit of 4
+      const farmerIndex = Math.floor(i / maxPerFarmer);
+      if (farmerIndex < activeFarmers.length) {
+        targetFarmer = activeFarmers[farmerIndex];
+      }
+
+      if (p.farmerName !== targetFarmer) {
+        p.farmerName = targetFarmer;
+        db.ref(`products/${p.id}`).update({ farmerName: targetFarmer }).catch(() => {});
       }
       return p;
     });
