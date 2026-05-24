@@ -254,7 +254,17 @@ router.post("/cod/create", async (req: Request, res: Response) => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    await db.ref(`orders/${orderId}`).set(orderData);
+    const sanitizeForFirebase = (obj: any): any => {
+      if (obj === undefined) return null;
+      if (obj === null || typeof obj !== 'object') return obj;
+      if (Array.isArray(obj)) return obj.map(sanitizeForFirebase);
+      const newObj: any = {};
+      for (const key in obj) {
+        if (obj[key] !== undefined) newObj[key] = sanitizeForFirebase(obj[key]);
+      }
+      return newObj;
+    };
+    await db.ref(`orders/${orderId}`).set(sanitizeForFirebase(orderData));
     await sendOrderConfirmationEmail({
       to: customerEmail,
       customerName,

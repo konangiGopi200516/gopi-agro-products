@@ -647,5 +647,89 @@ export const seedProducts = [
     "description": "Green cardamom pods.",
     "imageUrl": "/spi/cardamom.jpg",
     "createdAt": "2026-05-16T07:02:49.232Z"
+  },
+  {
+    "id": "106",
+    "name": "Cinnamon",
+    "category": "Spices",
+    "price": 180,
+    "unit": "kg",
+    "stock": 90,
+    "farmerName": "Local Farmer",
+    "description": "Aromatic cinnamon sticks.",
+    "imageUrl": "/spi/cinnamon.jpg",
+    "createdAt": "2026-05-16T07:02:49.232Z"
+  },
+  {
+    "id": "107",
+    "name": "Cloves",
+    "category": "Spices",
+    "price": 200,
+    "unit": "kg",
+    "stock": 50,
+    "farmerName": "Local Farmer",
+    "description": "Rich and pungent whole cloves.",
+    "imageUrl": "/spi/cloves.jpg",
+    "createdAt": "2026-05-16T07:02:49.232Z"
+  },
+  {
+    "id": "108",
+    "name": "Curry Leaves",
+    "category": "Spices",
+    "price": 40,
+    "unit": "bunch",
+    "stock": 300,
+    "farmerName": "Local Farmer",
+    "description": "Fresh aromatic curry leaves.",
+    "imageUrl": "/spi/curry leaves.jpg",
+    "createdAt": "2026-05-16T07:02:49.232Z"
+  },
+  {
+    "id": "109",
+    "name": "Garlic",
+    "category": "Spices",
+    "price": 90,
+    "unit": "kg",
+    "stock": 150,
+    "farmerName": "Local Farmer",
+    "description": "Fresh garlic bulbs.",
+    "imageUrl": "/spi/garlic.jpg",
+    "createdAt": "2026-05-16T07:02:49.232Z"
+  },
+  {
+    "id": "110",
+    "name": "Ginger",
+    "category": "Spices",
+    "price": 85,
+    "unit": "kg",
+    "stock": 180,
+    "farmerName": "Local Farmer",
+    "description": "Fresh ginger root.",
+    "imageUrl": "/spi/ginger.jpg",
+    "createdAt": "2026-05-16T07:02:49.232Z"
+  },
+  {
+    "id": "111",
+    "name": "Mint",
+    "category": "Spices",
+    "price": 30,
+    "unit": "bunch",
+    "stock": 200,
+    "farmerName": "Local Farmer",
+    "description": "Fresh mint leaves.",
+    "imageUrl": "/spi/mint.jpg",
+    "createdAt": "2026-05-16T07:02:49.232Z"
+  },
+  {
+    "id": "112",
+    "name": "Red Chilli Powder",
+    "category": "Spices",
+    "price": 160,
+    "unit": "kg",
+    "stock": 100,
+    "farmerName": "Local Farmer",
+    "description": "Spicy red chilli powder.",
+    "imageUrl": "/spi/red chilli powder.jpg",
+    "createdAt": "2026-05-16T07:02:49.232Z"
   }
 ];
