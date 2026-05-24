@@ -130,7 +130,7 @@ export default function Checkout() {
         const result = await createOnlineOrder(checkoutData);
         await initiatePayment({
           paymentSessionId: result.paymentSessionId,
-          orderId: result.orderId,
+          orderId: result.internalOrderId || result.cfOrderId,
           onSuccess: (oid) => {
             setSuccessBrief(true);
             clearCart();
