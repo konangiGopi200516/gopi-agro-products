@@ -405,7 +405,7 @@ router.get("/verify-order", async (req: Request, res: Response) => {
     if (!orderId) {
       return res.status(400).json({ error: "order_id query param is required" });
     }
-    const orderSnap = await db.ref(`orders/${orderId}`).get();
+    const orderSnap = await db.ref(`orders/${orderId}`).once('value');
     if (!orderSnap.exists()) return res.status(404).json({ error: "Order not found" });
     const order = orderSnap.val();
     // Sync status if still pending
@@ -426,7 +426,7 @@ router.get("/verify-order", async (req: Request, res: Response) => {
             const itemId = item.id || item.product?.id || item.productId;
             if (itemId) {
               const productRef = db.ref(`products/${itemId}/stock`);
-              const snap = await productRef.get();
+              const snap = await productRef.once('value');
               if (snap.exists()) {
                 const newStock = Math.max(0, snap.val() - item.quantity);
                 await productRef.set(newStock);
