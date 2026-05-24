@@ -17,7 +17,7 @@ const farmers = ["Ramu Kaka", "Sunita Devi", "Balram Singh", "Kavita Bai", "Gopa
 const locations = ["Ratnagiri, MH", "Nashik, MH", "Pune, MH", "Anand, GJ", "Amritsar, PB", "Sehore, MP", "Guntur, AP", "Mysore, KA"];
 
 async function main() {
-  const publicDir = path.resolve(__dirname, "../../public");
+  const publicDir = path.resolve(process.cwd(), "public");
   
   if (!fs.existsSync(publicDir)) {
     console.error("Public directory not found at:", publicDir);

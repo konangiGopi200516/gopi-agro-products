@@ -104,9 +104,9 @@ try {
     console.log('🔥 Firebase Admin initialized via individual FIREBASE_ variables');
   } else {
     const paths = [
-      path.join(__dirname, '../../firebase-service-account.json'), // Local dev
+      path.join(process.cwd(), '../firebase-service-account.json'), // Local dev
       path.join(process.cwd(), 'firebase-service-account.json'),   // Vercel serverless
-      path.join(__dirname, 'firebase-service-account.json')
+      path.join(process.cwd(), 'server/src/firebase-service-account.json')
     ];
     let serviceAccountPath = '';
     for (const p of paths) {
