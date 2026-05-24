@@ -4,6 +4,7 @@ import { db } from "../firebase";
 import { createCashfreeOrder, verifyCashfreeWebhook, fetchCashfreeOrderStatus } from "../services/cashfree";
 import { generateOTP, storeOTP, verifyOTP } from "../services/otp";
 import { sendOrderConfirmationEmail, sendCODOTPEmail, sendPaymentFailedEmail } from "../services/emailTemplates";
+import { v4 as uuidv4 } from "uuid";
 
 const router = express.Router();
 
@@ -29,7 +30,7 @@ router.post("/create-order", async (req: Request, res: Response) => {
     }
 
     // -------- Order IDs --------
-    const internalOrderId = `KM_${Date.now()}_${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
+    const internalOrderId = `KM_${Date.now()}_${uuidv4().slice(0, 8).toUpperCase()}`;
     const clientUrl = process.env.CLIENT_URL || process.env.FRONTEND_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:5173");
 
     // -------- Internal order data (will be stored under Cashfree order ID) --------
@@ -237,7 +238,7 @@ router.post("/cod/create", async (req: Request, res: Response) => {
     if (totalAmount > 5000) {
       return res.status(400).json({ error: "COD not available for orders above ₹5,000. Please use online payment." });
     }
-    const orderId = `KM_COD_${Date.now()}_${crypto.randomUUID().slice(0, 6).toUpperCase()}`;
+    const orderId = `KM_COD_${Date.now()}_${uuidv4().slice(0, 6).toUpperCase()}`;
     const orderData = {
       orderId,
       uid: uid || "guest",
@@ -348,7 +349,7 @@ router.post("/upi/create", async (req: Request, res: Response) => {
     if (!cartItems || !address || !customerEmail || !customerPhone || !totalAmount) {
       return res.status(400).json({ error: "Missing required fields" });
     }
-    const orderId = `KM_UPI_${Date.now()}_${crypto.randomUUID().slice(0, 6).toUpperCase()}`;
+    const orderId = `KM_UPI_${Date.now()}_${uuidv4().slice(0, 6).toUpperCase()}`;
     const orderData = {
       orderId,
       uid: uid || "guest",
