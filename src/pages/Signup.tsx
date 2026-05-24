@@ -66,23 +66,21 @@ const Signup = () => {
     setFormData(finalData);
 
     try {
-      const res = await api.post('/auth/register', {
-        fullName: finalData.fullName,
-        email: finalData.email,
-        mobile: `+91${finalData.mobile}`,
-        password: finalData.password
-      });
+        const res = await api.post('/auth/register', {
+          fullName: finalData.fullName,
+          email: finalData.email,
+          // Ensure mobile number is sent without '+91' prefix; backend expects plain number
+          mobile: finalData.mobile.replace(/^\+91/, ''),
+          password: finalData.password,
+        });
 
-      const responseData = res.data;
-      if (responseData.user) {
-        localStorage.setItem('kisanmart_user', JSON.stringify(responseData.user));
+        toast.success('Account created successfully! Please log in.');
+        // Navigate to login so the user explicitly authenticates
+        navigate('/login');
+      } catch (err: any) {
+        const errorMessage = err.response?.data?.error || err.message || 'Registration failed';
+        toast.error(errorMessage);
       }
-
-      toast.success('Account created successfully!');
-      window.location.href = '/';
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || err.message || "Registration failed");
-    }
   };
 
   // Real Google Sign-In — opens native Google "Choose an account" popup

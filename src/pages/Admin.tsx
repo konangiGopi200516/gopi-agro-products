@@ -80,8 +80,7 @@ const Admin = ({ children }: { children?: React.ReactNode }) => {
     { path: '/admin', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
     { path: '/admin/products', icon: <Package size={20} />, label: 'Products' },
     { path: '/admin/orders', icon: <ClipboardList size={20} />, label: 'Orders' },
-    { path: '/admin/farmers', icon: <Users size={20} />, label: 'Farmers' },
-    { path: '#', icon: <Settings size={20} />, label: 'Settings' }
+    { path: '/admin/settings', icon: <Settings size={20} />, label: 'Settings' }
   ];
 
   const isHome = location.pathname === '/admin';

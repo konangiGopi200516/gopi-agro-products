@@ -9,6 +9,7 @@ export const Navbar = () => {
   const { state } = useContext(AppContext);
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showAnnouncement, setShowAnnouncement] = useState(true);
   
@@ -81,9 +82,33 @@ export const Navbar = () => {
                   <Link to="/my-orders" className={`flex items-center gap-1.5 ${navLinkClass('/my-orders')}`}>
                     <Package size={18} /> My Orders
                   </Link>
-                  <button onClick={handleLogout} className="flex items-center gap-1.5 text-[var(--color-text-secondary)] hover:text-red-500 transition-colors">
-                    <LogOut size={18} /> Logout
-                  </button>
+                  <div className="relative ml-2 pl-4 border-l border-gray-200">
+                    <button 
+                      onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+                      className="w-10 h-10 rounded-full bg-green-100 text-[var(--color-primary)] flex items-center justify-center font-bold text-lg border-2 border-green-200 shadow-sm hover:bg-green-200 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)]" 
+                      title={user?.name || 'User'}
+                    >
+                      {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                    </button>
+
+                    {profileMenuOpen && (
+                      <>
+                        <div className="fixed inset-0 z-40" onClick={() => setProfileMenuOpen(false)}></div>
+                        <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                          <div className="px-4 py-3 border-b border-gray-100 mb-1">
+                            <p className="text-sm font-bold text-gray-900 truncate">{user?.name || 'User'}</p>
+                            <p className="text-xs font-medium text-gray-500 truncate mt-0.5">{user?.email || ''}</p>
+                          </div>
+                          <button 
+                            onClick={() => { setProfileMenuOpen(false); handleLogout(); }} 
+                            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors text-left font-semibold"
+                          >
+                            <LogOut size={16} /> Sign out
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </>
               ) : (
                 <>
@@ -133,11 +158,20 @@ export const Navbar = () => {
             <Link to="/products" onClick={() => setMobileMenuOpen(false)} className="text-[17px] font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]">Products</Link>
             <Link to="/farmers" onClick={() => setMobileMenuOpen(false)} className="text-[17px] font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]">Meet Farmers</Link>
             {isAuthenticated ? (
-              <div className="flex flex-col space-y-3 mt-2">
-                <Link to="/my-orders" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 text-[17px] font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]">
+              <div className="flex flex-col space-y-4 mt-2 border-t border-gray-100 pt-4">
+                <div className="flex items-center gap-3 px-2 mb-1">
+                  <div className="w-11 h-11 rounded-full bg-green-100 text-[var(--color-primary)] flex items-center justify-center font-bold text-xl border border-green-200 shadow-sm">
+                    {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-base font-bold text-gray-900 leading-tight">{user?.name || 'User'}</span>
+                    <span className="text-xs font-medium text-gray-500">{user?.email || ''}</span>
+                  </div>
+                </div>
+                <Link to="/my-orders" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 text-[17px] font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] px-2">
                   <Package size={20} /> My Orders
                 </Link>
-                <button onClick={() => { setMobileMenuOpen(false); handleLogout(); }} className="flex items-center gap-2 text-[17px] font-medium text-[var(--color-text-secondary)] hover:text-red-500 text-left">
+                <button onClick={() => { setMobileMenuOpen(false); handleLogout(); }} className="flex items-center gap-2 text-[17px] font-medium text-[var(--color-text-secondary)] hover:text-red-500 text-left px-2">
                   <LogOut size={20} /> Logout
                 </button>
               </div>

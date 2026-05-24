@@ -175,7 +175,7 @@ router.post(
       // Check if email already exists
       const usersSnapshot = await db.ref("users").orderByChild("email").equalTo(email).once("value");
       if (usersSnapshot.exists()) {
-        return res.status(400).json({ error: "An account with this email already exists" });
+        return res.status(400).json({ error: "This email is already registered" });
       }
 
       const uid = "user_" + Date.now().toString(36);
@@ -195,11 +195,9 @@ router.post(
 
       await logAuthEvent(req, "REGISTER", uid);
 
-      // Log the user in immediately
-      const tokens = setAuthCookies(res, uid);
-
+      // Removed auto-login to force user to explicitly login after registration
       const { passwordHash: _, ...safeUser } = userDoc;
-      res.json({ user: safeUser, accessToken: tokens.accessToken });
+      res.json({ user: safeUser, message: "Registration successful. Please log in." });
     } catch (error: any) {
       console.error("Register error:", error);
       res.status(400).json({ error: error.message });

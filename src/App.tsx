@@ -28,6 +28,7 @@ const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const MeetFarmers = lazy(() => import('./pages/MeetFarmers'));
 const AdminFarmers = lazy(() => import('./pages/AdminFarmers'));
+const AdminSettings = lazy(() => import('./pages/AdminSettings'));
 
 const LoadingSpinner = () => (
   <div className="min-h-screen flex items-center justify-center bg-[var(--color-surface)]">
@@ -81,6 +82,7 @@ function App() {
                 <Route path="admin/orders" element={<AdminOrders />} />
                 <Route path="admin/products" element={<AdminProducts />} />
                 <Route path="admin/farmers" element={<AdminFarmers />} />
+                <Route path="admin/settings" element={<AdminSettings />} />
               </Route>
             </Routes>
           </Suspense>

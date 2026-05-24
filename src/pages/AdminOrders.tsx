@@ -86,7 +86,7 @@ const AdminOrders = () => {
               {filtered.map(o => (
                 <tr key={o.id} className="hover:bg-[var(--color-surface)]">
                   <td className="px-5 py-4"><div className="font-mono text-[13px] font-bold text-[var(--color-primary-dark)] bg-[var(--color-amber-light)] px-2 py-1 rounded inline-block">{o.orderId || o.id.slice(0,8)}</div></td>
-                  <td className="px-5 py-4 text-[14px] font-medium text-[var(--color-text-primary)]">{o.userName || o.buyerName}</td>
+                  <td className="px-5 py-4 text-[14px] font-medium text-[var(--color-text-primary)]">{o.customerName || o.userName || o.buyerName || 'Guest'}</td>
                   <td className="px-5 py-4 font-bold text-[14px] text-[var(--color-text-primary)]">₹{o.totalAmount || o.total}</td>
                   <td className="px-5 py-4">
                     {o.paymentMethod === "COD" ? (
@@ -124,9 +124,10 @@ const AdminOrders = () => {
                 <div>
                   <h4 className="text-[12px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Customer</h4>
                   <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius-sm)] p-4 text-[14px]">
-                    <div className="font-bold text-[var(--color-text-primary)]">{selectedOrder.userName || selectedOrder.buyerName}</div>
-                    <div className="text-[var(--color-text-secondary)]">{selectedOrder.userPhone || selectedOrder.phone}</div>
-                    <div className="text-[var(--color-text-secondary)] mt-2">{(() => { const addr = selectedOrder.deliveryAddress || selectedOrder.address; if (typeof addr === 'object' && addr) return `${addr.line1}, ${addr.city}, ${addr.state} - ${addr.pincode}`; return addr || 'N/A'; })()}</div>
+                    <div className="font-bold text-[var(--color-text-primary)]">{selectedOrder.customerName || selectedOrder.userName || selectedOrder.buyerName || 'Guest'}</div>
+                    <div className="text-[var(--color-text-secondary)]">{selectedOrder.customerPhone || selectedOrder.userPhone || selectedOrder.phone || 'N/A'}</div>
+                    <div className="text-[var(--color-text-secondary)]">{selectedOrder.customerEmail || selectedOrder.userEmail || ''}</div>
+                    <div className="text-[var(--color-text-secondary)] mt-2">{(() => { const addr = selectedOrder.address || selectedOrder.deliveryAddress; if (typeof addr === 'object' && addr) return `${addr.line1 || ''}, ${addr.city || ''}, ${addr.state || ''} - ${addr.pincode || ''}`; return addr || 'N/A'; })()}</div>
                   </div>
                 </div>
                 <div>
@@ -156,10 +157,10 @@ const AdminOrders = () => {
                 <div>
                   <h4 className="text-[12px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Items</h4>
                   <div className="border border-[var(--color-border)] rounded-[var(--radius-sm)] divide-y divide-[var(--color-border)]">
-                    {selectedOrder.items.map((item: any, i: number) => (
+                    {(selectedOrder.cartItems || selectedOrder.items || []).map((item: any, i: number) => (
                       <div key={i} className="p-3 flex justify-between items-center text-[14px]">
-                        <div><span className="font-medium text-[var(--color-text-primary)]">{item.product.name}</span> <span className="text-[var(--color-text-muted)]">× {item.quantity}</span></div>
-                        <div className="font-bold text-[var(--color-text-primary)]">₹{item.product.price * item.quantity}</div>
+                        <div><span className="font-medium text-[var(--color-text-primary)]">{item.product?.name || item.name}</span> <span className="text-[var(--color-text-muted)]">× {item.quantity}</span></div>
+                        <div className="font-bold text-[var(--color-text-primary)]">₹{(item.product?.price || item.price) * item.quantity}</div>
                       </div>
                     ))}
                     <div className="p-3 bg-[var(--color-surface)] flex justify-between items-center font-bold">
