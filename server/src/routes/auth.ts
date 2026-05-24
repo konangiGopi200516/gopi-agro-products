@@ -178,7 +178,23 @@ router.post(
       // Check if email already exists
       const usersSnapshot = await db.ref("users").orderByChild("email").equalTo(email).once("value");
       if (usersSnapshot.exists()) {
-        return res.status(400).json({ error: "This email is already registered" });
+        const users = usersSnapshot.val();
+        const existingUid = Object.keys(users)[0];
+        const existingUser = users[existingUid];
+        
+        // If user exists, check if password matches
+        if (existingUser.passwordHash) {
+          const isValid = await bcrypt.compare(password, existingUser.passwordHash);
+          if (isValid) {
+            // Password matches! Log them in directly.
+            const tokens = setAuthCookies(res, existingUid);
+            await logAuthEvent(req, "LOGIN_SUCCESS_VIA_REGISTER", existingUid);
+            const { passwordHash: _, ...safeUser } = existingUser;
+            return res.json({ user: safeUser, accessToken: tokens.accessToken, refreshToken: tokens.refreshToken, message: "Welcome back! Logged in automatically." });
+          }
+        }
+        
+        return res.status(400).json({ error: "This email is already registered. Please log in or use the correct password." });
       }
 
       const uid = "user_" + Date.now().toString(36);
@@ -198,9 +214,11 @@ router.post(
 
       await logAuthEvent(req, "REGISTER", uid);
 
-      // Removed auto-login to force user to explicitly login after registration
+      // Auto-login after registration
+      const tokens = setAuthCookies(res, uid);
+      await logAuthEvent(req, "LOGIN_SUCCESS_VIA_REGISTER", uid);
       const { passwordHash: _, ...safeUser } = userDoc;
-      res.json({ user: safeUser, message: "Registration successful. Please log in." });
+      res.json({ user: safeUser, accessToken: tokens.accessToken, refreshToken: tokens.refreshToken, message: "Registration successful. Logged in automatically." });
     } catch (error: any) {
       console.error("Register error:", error);
       res.status(400).json({ error: error.message });

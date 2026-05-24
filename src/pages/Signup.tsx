@@ -73,10 +73,19 @@ const Signup = () => {
           mobile: finalData.mobile.replace(/^\+91/, ''),
           password: finalData.password,
         });
-
-        toast.success('Account created successfully! Please log in.');
-        // Navigate to login so the user explicitly authenticates
-        navigate('/login');
+        const data = res.data;
+        if (data.accessToken) {
+          localStorage.setItem('kisanmart_accessToken', data.accessToken);
+          localStorage.setItem('kisanmart_token', data.accessToken);
+          if (data.refreshToken) localStorage.setItem('kisanmart_refreshToken', data.refreshToken);
+          if (data.user) localStorage.setItem('kisanmart_user', JSON.stringify(data.user));
+          
+          toast.success(data.message || 'Logged in automatically!');
+          window.location.href = '/'; // Reload to pick up AuthContext
+        } else {
+          toast.success('Account created successfully! Please log in.');
+          navigate('/login');
+        }
       } catch (err: any) {
         const errorMessage = err.response?.data?.error || err.message || 'Registration failed';
         toast.error(errorMessage);
