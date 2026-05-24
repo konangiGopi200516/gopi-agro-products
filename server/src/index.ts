@@ -150,6 +150,18 @@ app.get("/api/products", async (req, res) => {
     
     let products = Object.keys(data).map(k => ({ id: k, ...data[k] }));
 
+    // Normalize farmer names (migrate from 'Local Farmer' to real farmers)
+    const activeFarmers = ['Kotesh', 'Krishnayya', 'Rajendra', 'Rambabu', 'Balaram'];
+    let needsUpdate = false;
+    products = products.map((p, i) => {
+      if (p.farmerName === 'Local Farmer') {
+        p.farmerName = activeFarmers[i % activeFarmers.length];
+        db.ref(`products/${p.id}`).update({ farmerName: p.farmerName }).catch(() => {});
+        needsUpdate = true;
+      }
+      return p;
+    });
+
     products = products.filter(p => p.isActive !== false);
 
     if (category) {
