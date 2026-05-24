@@ -34,39 +34,6 @@ const initMailer = async () => {
 
 
 export const sendMail = async (to: string, subject: string, html: string) => {
-  const resendApiKey = process.env.RESEND_API_KEY;
-
-  if (resendApiKey) {
-    try {
-      console.log(`🚀 Sending email via Resend HTTP API to: ${to}...`);
-      const response = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${resendApiKey}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          from: "KisanMart <onboarding@resend.dev>",
-          to: to,
-          subject: subject,
-          html: html
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Resend API returned status ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log(`✅ Email sent successfully via Resend to ${to} (ID: ${result.id})`);
-      return { success: true, messageId: result.id };
-    } catch (error) {
-      console.error(`❌ Error sending email via Resend to ${to}:`, error);
-      throw error;
-    }
-  }
-
   if (!transporter) {
     await initMailer();
   }

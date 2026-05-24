@@ -298,9 +298,9 @@ app.put("/api/farmers/:id", async (req, res) => {
 
 app.post("/api/orders", async (req, res) => {
   const uid = req.body.uid || req.body.userId || 'guest';
-  const name = req.body.name || req.body.userName || 'Guest';
-  const email = req.body.email || req.body.userEmail || '';
-  const phone = req.body.phone || req.body.userPhone || '';
+  const name = req.body.name || req.body.userName || req.body.customerName || 'Guest';
+  const email = req.body.email || req.body.userEmail || req.body.customerEmail || '';
+  const phone = req.body.phone || req.body.userPhone || req.body.customerPhone || '';
   const {
     items, totalAmount, deliveryAddress,
     paymentMethod, upiTransactionId,
