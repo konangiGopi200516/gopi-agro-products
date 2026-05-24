@@ -125,6 +125,8 @@ app.get("/api/users/:uid", async (req, res) => {
   }
 });
 
+import { seedProducts } from "./seedProducts";
+
 // ==========================
 // PRODUCT ROUTES
 // ==========================
@@ -133,7 +135,19 @@ app.get("/api/products", async (req, res) => {
   const { category, search, featured } = req.query;
   try {
     const snapshot = await db.ref('products').once('value');
-    const data = snapshot.val() || {};
+    let data = snapshot.val();
+    
+    if (!data) {
+      // Seed products if empty
+      for (const p of seedProducts) {
+        await db.ref(`products/${p.id}`).set(p);
+      }
+      data = seedProducts.reduce((acc: any, p: any) => {
+        acc[p.id] = p;
+        return acc;
+      }, {});
+    }
+    
     let products = Object.keys(data).map(k => ({ id: k, ...data[k] }));
 
     products = products.filter(p => p.isActive !== false);

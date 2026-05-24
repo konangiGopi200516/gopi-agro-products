@@ -72,9 +72,21 @@ let isMock = false;
 
 try {
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-    const serviceAccount = typeof process.env.FIREBASE_SERVICE_ACCOUNT === 'string' && process.env.FIREBASE_SERVICE_ACCOUNT.startsWith('{')
-      ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
-      : process.env.FIREBASE_SERVICE_ACCOUNT;
+    let serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT;
+    
+    // Attempt base64 decode if it doesn't look like raw JSON
+    if (typeof serviceAccountString === 'string' && !serviceAccountString.trim().startsWith('{')) {
+      try {
+        const decoded = Buffer.from(serviceAccountString, 'base64').toString('utf8');
+        if (decoded.trim().startsWith('{')) {
+          serviceAccountString = decoded;
+        }
+      } catch (e) {}
+    }
+
+    const serviceAccount = typeof serviceAccountString === 'string' && serviceAccountString.trim().startsWith('{')
+      ? JSON.parse(serviceAccountString)
+      : serviceAccountString;
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
       databaseURL: 'https://farmer-friendly-web-app-default-rtdb.firebaseio.com'
@@ -111,8 +123,12 @@ try {
     });
     console.log('🔥 Firebase Admin initialized via local JSON file');
   }
-} catch (error) {
-  console.warn('⚠️ Firebase Admin init error:', error);
+} catch (error: any) {
+  console.warn('⚠️ Firebase Admin init error:', error.message);
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+     console.warn('⚠️ FIREBASE_SERVICE_ACCOUNT was provided but failed to parse.');
+     console.warn('First 20 chars:', process.env.FIREBASE_SERVICE_ACCOUNT.substring(0, 20));
+  }
   console.warn('⚠️ Falling back to local JSON MOCK database for testing.');
   isMock = true;
   // Initialize an empty mock db if it doesn't exist
