@@ -12,6 +12,7 @@ interface OrderData {
   orderStatus: string;
   totalAmount: number;
   customerName?: string;
+  paymentMethod?: string;
   items?: Array<{ name: string; quantity: number; price: number }>;
 }
 
@@ -45,7 +46,7 @@ export default function OrderSuccess() {
         if (cancelled) return;
         setOrderData(result);
 
-        if (result.paymentStatus === "PAID") {
+        if (result.paymentStatus === "PAID" || result.paymentMethod === "COD") {
           setStatus("PAID");
           clearCart();
           clearInterval(interval);

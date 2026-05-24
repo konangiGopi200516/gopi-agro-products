@@ -187,7 +187,7 @@ router.post("/webhook", express.raw({ type: "application/json" }), async (req: R
 router.get("/status/:orderId", async (req: Request, res: Response) => {
   try {
     const { orderId } = req.params; // Cashfree order ID
-    const orderSnap = await db.ref(`orders/${orderId}`).get();
+    const orderSnap = await db.ref(`orders/${orderId}`).once('value');
     if (!orderSnap.exists()) return res.status(404).json({ error: "Order not found" });
     const order = orderSnap.val();
 
