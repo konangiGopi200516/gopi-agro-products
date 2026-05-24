@@ -32,17 +32,19 @@ const setAuthCookies = (res: express.Response, uid: string) => {
   const accessToken = jwt.sign({ uid }, JWT_SECRET, { expiresIn: "15m" });
   const refreshToken = jwt.sign({ uid }, REFRESH_SECRET, { expiresIn: "7d" });
 
+  const isProd = process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production" || !!process.env.RENDER;
+
   res.cookie("accessToken", accessToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
     maxAge: 15 * 60 * 1000 // 15 mins
   });
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
   });
 
