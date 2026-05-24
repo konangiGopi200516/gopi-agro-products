@@ -31,11 +31,14 @@ const Products = () => {
   };
 
   const filteredAndSortedProducts = useMemo(() => {
-    let result = products.filter(p => p.category !== 'Spices' && p.category?.name !== 'Spices');
+    let result = products;
 
     if (categoryFilter) {
       result = result.filter(p => {
         const catName = typeof p.category === 'string' ? p.category : p.category?.name;
+        if (categoryFilter === 'Spices & Herbs' && (catName === 'Spices' || catName === 'Spices & Herbs')) {
+          return true;
+        }
         return catName === categoryFilter;
       });
     }
