@@ -213,7 +213,30 @@ router.post(
         if (existingUser.passwordHash) {
           const isValid = await bcrypt.compare(password, existingUser.passwordHash);
           if (isValid) {
-            // Password matches! Log them in directly.
+            if (!existingUser.verified) {
+              const otp = Math.floor(100000 + Math.random() * 900000).toString();
+              await db.ref(`users/${existingUid}`).update({ otp });
+              try {
+                await sendSystemEmail(
+                  normalizedEmail,
+                  "Verify your KisanMart Account",
+                  `
+                    <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                      <h2 style="color: #4CAF50; text-align: center;">🌱 Welcome back to KisanMart!</h2>
+                      <p>Hello ${existingUser.name},</p>
+                      <p>Please use the following 6-digit OTP to verify your email address and activate your account:</p>
+                      <div style="text-align: center; margin: 30px 0;">
+                        <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #333;">${otp}</span>
+                      </div>
+                      <p>This OTP is valid for a limited time.</p>
+                    </div>
+                  `
+                );
+              } catch (e) {}
+              return res.json({ message: "Your account is not verified. A new OTP has been sent.", requireOtp: true, userId: existingUid });
+            }
+
+            // Password matches and verified! Log them in directly.
             const tokens = setAuthCookies(res, existingUid);
             await logAuthEvent(req, "LOGIN_SUCCESS_VIA_REGISTER", existingUid);
             const { passwordHash: _, ...safeUser } = existingUser;
