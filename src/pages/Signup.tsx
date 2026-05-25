@@ -74,6 +74,12 @@ const Signup = () => {
           password: finalData.password,
         });
         const data = res.data;
+        if (data.requireOtp) {
+          toast.success(data.message || 'OTP sent! Please check your email.');
+          navigate('/verify-otp', { state: { userId: data.userId, type: 'register', email: finalData.email } });
+          return;
+        }
+
         if (data.accessToken) {
           localStorage.setItem('kisanmart_accessToken', data.accessToken);
           localStorage.setItem('kisanmart_token', data.accessToken);
