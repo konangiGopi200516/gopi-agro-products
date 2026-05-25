@@ -78,7 +78,7 @@ const AdminFarmers = () => {
   const handleDelete = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this farmer?")) return;
     try {
-      const res = await fetch(`/api/farmers/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_BASE}/farmers/${id}`, { method: 'DELETE' });
       if (res.ok) {
         showToast('Farmer deleted successfully', 'success');
         fetchFarmers();
