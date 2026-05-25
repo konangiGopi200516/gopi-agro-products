@@ -3,7 +3,7 @@ import { db, admin } from "../firebase";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { authLimiter } from "../middleware/authMiddleware";
-import nodemailer from "nodemailer";
+import { sendMail } from "../config/mailer";
 import dns from "dns";
 
 const router = express.Router();
@@ -217,7 +217,7 @@ router.post(
               const otp = Math.floor(100000 + Math.random() * 900000).toString();
               await db.ref(`users/${existingUid}`).update({ otp });
               try {
-                await sendSystemEmail(
+                await sendMail(
                   normalizedEmail,
                   "Verify your KisanMart Account",
                   `
@@ -271,7 +271,7 @@ router.post(
 
       // Send OTP via email
       try {
-        await sendSystemEmail(
+        await sendMail(
           normalizedEmail,
           "Verify your KisanMart Account",
           `
@@ -334,7 +334,7 @@ router.post("/resend-otp", async (req: express.Request, res: express.Response) =
     await db.ref(`users/${userId}`).update({ otp });
 
     try {
-      await sendSystemEmail(
+      await sendMail(
         user.email,
         "Your New OTP - KisanMart",
         `
@@ -409,69 +409,13 @@ router.post(
   }
 );
 
-async function sendEmailViaResend(to: string, subject: string, htmlContent: string) {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    throw new Error("RESEND_API_KEY environment variable is not configured.");
-  }
-
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      from: "KisanMart <onboarding@resend.dev>",
-      to: to,
-      subject: subject,
-      html: htmlContent
-    })
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || `Resend API returned status ${response.status}: ${JSON.stringify(errorData)}`);
-  }
-
-  return await response.json();
-};
-
-async function sendSystemEmail(to: string, subject: string, htmlContent: string) {
-  const resendKey = process.env.RESEND_API_KEY;
-  if (resendKey) {
-    return await sendEmailViaResend(to, subject, htmlContent);
-  }
-
-  const mailUser = process.env.MAIL_USER;
-  const mailPass = process.env.MAIL_PASS;
-  if (mailUser && mailPass) {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: mailUser,
-        pass: mailPass,
-      },
-    });
-
-    return await transporter.sendMail({
-      from: `"KisanMart" <${mailUser}>`,
-      to,
-      subject,
-      html: htmlContent,
-    });
-  }
-
-  throw new Error("No email provider configured (missing RESEND_API_KEY or MAIL_USER/MAIL_PASS)");
-};
-
 // GET /api/auth/test-email
 router.get("/test-email", async (req: express.Request, res: express.Response) => {
   try {
     const testRecipient = (req.query.to as string) || "gopikonangi8@gmail.com";
     console.log(`Sending test email to: ${testRecipient}...`);
 
-    const result = await sendSystemEmail(
+    const result = await sendMail(
       testRecipient,
       "Email Connection Test - KisanMart",
       `
@@ -513,7 +457,7 @@ router.post(
       console.log(`Programmatic reset link generated: ${resetLink}`);
 
       try {
-        await sendSystemEmail(
+        await sendMail(
           normalizedEmail,
           "Password Reset Request - KisanMart",
           `
