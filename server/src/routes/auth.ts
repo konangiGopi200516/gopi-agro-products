@@ -214,26 +214,7 @@ router.post(
           const isValid = await bcrypt.compare(password, existingUser.passwordHash);
           if (isValid) {
             if (!existingUser.verified) {
-              const otp = Math.floor(100000 + Math.random() * 900000).toString();
-              await db.ref(`users/${existingUid}`).update({ otp });
-              try {
-                await sendMail(
-                  normalizedEmail,
-                  "Verify your KisanMart Account",
-                  `
-                    <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-                      <h2 style="color: #4CAF50; text-align: center;">🌱 Welcome back to KisanMart!</h2>
-                      <p>Hello ${existingUser.name},</p>
-                      <p>Please use the following 6-digit OTP to verify your email address and activate your account:</p>
-                      <div style="text-align: center; margin: 30px 0;">
-                        <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #333;">${otp}</span>
-                      </div>
-                      <p>This OTP is valid for a limited time.</p>
-                    </div>
-                  `
-                );
-              } catch (e) {}
-              return res.json({ message: "Your account is not verified. A new OTP has been sent.", requireOtp: true, userId: existingUid });
+              await db.ref(`users/${existingUid}`).update({ verified: true });
             }
 
             // Password matches and verified! Log them in directly.
@@ -251,7 +232,6 @@ router.post(
 
       const uid = "user_" + Date.now().toString(36);
       const passwordHash = await bcrypt.hash(password, 10);
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
       const userDoc = {
         id: uid,
@@ -259,9 +239,8 @@ router.post(
         name: fullName,
         email: normalizedEmail,
         phone: mobile,
-        verified: false,
+        verified: true, // Auto-verify without OTP
         passwordHash,
-        otp,
         createdAt: new Date().toISOString()
       };
 
@@ -269,30 +248,10 @@ router.post(
 
       await logAuthEvent(req, "REGISTER", uid);
 
-      // Send OTP via email
-      try {
-        await sendMail(
-          normalizedEmail,
-          "Verify your KisanMart Account",
-          `
-            <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-              <h2 style="color: #4CAF50; text-align: center;">🌱 Welcome to KisanMart!</h2>
-              <p>Hello ${fullName},</p>
-              <p>Thank you for registering. Please use the following 6-digit OTP to verify your email address:</p>
-              <div style="text-align: center; margin: 30px 0;">
-                <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #333;">${otp}</span>
-              </div>
-              <p>This OTP is valid for a limited time.</p>
-              <hr style="border: 0; border-top: 1px solid #eee; margin-top: 30px;" />
-              <p style="font-size: 12px; color: #888; text-align: center;">The KisanMart Team</p>
-            </div>
-          `
-        );
-      } catch (emailErr) {
-        console.error("Failed to send registration OTP:", emailErr);
-      }
+      const tokens = setAuthCookies(res, uid);
+      const { passwordHash: _, ...safeUser } = userDoc;
 
-      res.json({ message: "Registration successful. Please verify your email.", requireOtp: true, userId: uid });
+      res.json({ message: "Registration successful. Welcome to KisanMart!", user: safeUser, accessToken: tokens.accessToken, refreshToken: tokens.refreshToken });
     } catch (error: any) {
       console.error("Register error:", error);
       res.status(400).json({ error: error.message });
