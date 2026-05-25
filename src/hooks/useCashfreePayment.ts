@@ -18,11 +18,11 @@ export function useCashfreePayment() {
     setError(null);
 
     try {
-      // 1. Determine environment
+      // 1. Determine environment — default to production to match backend
       const envVar = import.meta.env.VITE_CASHFREE_ENV?.toUpperCase();
-      const mode = envVar === "PROD" ? "production" : "sandbox";
+      const mode = envVar === "SANDBOX" ? "sandbox" : "production";
 
-      console.log(`[Cashfree] Loading SDK in "${mode}" mode`);
+      console.log(`[Cashfree] VITE_CASHFREE_ENV="${import.meta.env.VITE_CASHFREE_ENV}", loading SDK in "${mode}" mode`);
 
       // 2. Load Cashfree JS SDK via official package
       const cashfree = await load({ mode });
