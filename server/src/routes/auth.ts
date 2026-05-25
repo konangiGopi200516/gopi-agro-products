@@ -456,9 +456,31 @@ router.post(
         throw new Error(data.error.message);
       }
 
-      await logAuthEvent(req, "PASSWORD_RESET_SUCCESS", undefined, { oobCode });
+      const responseData = await response.json();
+      const resetEmail = responseData.email;
+
+      if (resetEmail) {
+        // Also update the custom passwordHash in RTDB so the local login works
+        const normalizedEmail = resetEmail.trim().toLowerCase();
+        const usersSnapshot = await db.ref("users").orderByChild("email").equalTo(normalizedEmail).once("value");
+        
+        if (usersSnapshot.exists()) {
+          const users = usersSnapshot.val();
+          const uid = Object.keys(users)[0];
+          const newPasswordHash = await bcrypt.hash(newPassword, 10);
+          
+          await db.ref(`users/${uid}`).update({
+            passwordHash: newPasswordHash,
+            updatedAt: new Date().toISOString()
+          });
+          console.log(`[RESET PASSWORD] Successfully updated RTDB passwordHash for: ${normalizedEmail}`);
+        }
+      }
+
+      await logAuthEvent(req, "PASSWORD_RESET_SUCCESS", undefined, { oobCode, email: resetEmail });
       res.json({ success: true });
     } catch (error: any) {
+      console.error("Reset password error:", error);
       res.status(400).json({ error: "Invalid or expired reset token" });
     }
   }
