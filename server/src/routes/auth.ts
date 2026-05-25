@@ -242,6 +242,8 @@ router.post(
             const { passwordHash: _, ...safeUser } = existingUser;
             return res.json({ user: safeUser, accessToken: tokens.accessToken, refreshToken: tokens.refreshToken, message: "Welcome back! Logged in automatically." });
           }
+        } else {
+          return res.status(400).json({ error: "This email is registered via Google Sign-In. Please click 'Continue with Google' to log in." });
         }
         
         return res.status(400).json({ error: "This email is already registered. Please log in or use the correct password." });
