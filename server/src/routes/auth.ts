@@ -168,10 +168,6 @@ router.post(
         return res.status(403).json({ error: "Account is locked. Please contact support." });
       }
 
-      if (!user.verified) {
-        return res.status(403).json({ error: "Please verify your email before logging in." });
-      }
-
       const tokens = setAuthCookies(res, uid);
       await logAuthEvent(req, "LOGIN_SUCCESS", uid);
       console.log(`[LOGIN] ✅ Login successful for user: ${uid}`);

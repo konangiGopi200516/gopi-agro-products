@@ -87,7 +87,11 @@ const Signup = () => {
           navigate('/login');
         }
       } catch (err: any) {
-        const errorMessage = err.response?.data?.error || err.message || 'Registration failed';
+        console.error("Full Registration Error:", err.response?.data);
+        const errorMessage = err.response?.data?.error 
+          || err.response?.data?.message
+          || err.message 
+          || 'Registration failed. Please check your details.';
         toast.error(errorMessage);
       }
   };
