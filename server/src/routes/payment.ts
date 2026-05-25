@@ -77,14 +77,26 @@ router.post("/create-order", async (req: Request, res: Response) => {
 
     // -------- Persist order using Cashfree order ID (cf_order_id) as the key --------
     const cfOrderId = cashfreeOrder.cf_order_id;
-    await db.ref(`orders/${cfOrderId}`).set({ ...orderData, cfOrderId, paymentSessionId: cashfreeOrder.payment_session_id });
+    const paymentSessionId = cashfreeOrder.payment_session_id;
+
+    // Validate payment_session_id before responding
+    if (!paymentSessionId) {
+      console.error("[create-order] Cashfree order created but missing payment_session_id!");
+      console.error("[create-order] Full Cashfree response:", JSON.stringify(cashfreeOrder, null, 2));
+      await db.ref(`orders/${internalOrderId}`).set({ ...orderData, failureReason: "Missing payment_session_id from Cashfree" });
+      return res.status(502).json({ error: "Payment gateway returned an incomplete response. Please try again." });
+    }
+
+    await db.ref(`orders/${cfOrderId}`).set({ ...orderData, cfOrderId, paymentSessionId });
+
+    console.log(`[create-order] ✅ Success: orderId=${internalOrderId}, cfOrderId=${cfOrderId}, sessionId=${paymentSessionId.slice(0, 20)}...`);
 
     // Respond with identifiers the front‑end needs
     res.json({
       success: true,
       internalOrderId,
       cfOrderId,
-      paymentSessionId: cashfreeOrder.payment_session_id,
+      paymentSessionId,
     });
   } catch (error: any) {
     console.error("Create order error:", error);

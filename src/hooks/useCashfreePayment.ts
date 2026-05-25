@@ -34,11 +34,24 @@ export function useCashfreePayment() {
       console.log(`[Cashfree] SDK loaded. Opening modal checkout...`);
       console.log(`[Cashfree] Session ID: ${params.paymentSessionId.slice(0, 20)}...`);
 
+      // Validate session ID before passing to SDK
+      if (!params.paymentSessionId || typeof params.paymentSessionId !== "string" || params.paymentSessionId.trim() === "") {
+        throw new Error("Invalid payment session ID received from server. Please try again.");
+      }
+
       // 3. Open MODAL checkout (no HTTPS required for localhost)
-      const result = await cashfree.checkout({
-        paymentSessionId: params.paymentSessionId,
-        redirectTarget: "_modal",
-      });
+      let result;
+      try {
+        result = await cashfree.checkout({
+          paymentSessionId: params.paymentSessionId,
+          redirectTarget: "_modal",
+        });
+      } catch (checkoutErr: any) {
+        console.error("[Cashfree] checkout() threw:", checkoutErr);
+        console.error("[Cashfree] Session ID used:", params.paymentSessionId.slice(0, 30) + "...");
+        console.error("[Cashfree] SDK mode:", mode);
+        throw checkoutErr;
+      }
 
       // 4. Handle all outcomes
       if (result.error) {

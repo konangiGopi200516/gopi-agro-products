@@ -27,7 +27,14 @@ export async function createOnlineOrder(data: CheckoutData) {
     }
     throw new Error(errMessage);
   }
-  return res.json(); // { orderId, paymentSessionId, cfOrderId }
+  const result = await res.json(); // { success, internalOrderId, paymentSessionId, cfOrderId }
+  console.log("[paymentApi] createOnlineOrder response:", {
+    success: result.success,
+    hasPaymentSessionId: !!result.paymentSessionId,
+    internalOrderId: result.internalOrderId,
+    cfOrderId: result.cfOrderId,
+  });
+  return result;
 }
 
 // ─── GET /api/verify-order?order_id=xxx → confirms PAID status ──────────────

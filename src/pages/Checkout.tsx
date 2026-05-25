@@ -128,6 +128,16 @@ export default function Checkout() {
       } else {
         // Both UPI and CARD will route through the robust Cashfree Drop-in UI
         const result = await createOnlineOrder(checkoutData);
+
+        // Validate that we received a payment session ID
+        if (!result.paymentSessionId) {
+          console.error("[Checkout] Backend response missing paymentSessionId:", result);
+          throw new Error("Payment session could not be created. Please try again.");
+        }
+
+        console.log("[Checkout] Got paymentSessionId:", result.paymentSessionId.slice(0, 20) + "...");
+        console.log("[Checkout] Order IDs:", { internalOrderId: result.internalOrderId, cfOrderId: result.cfOrderId });
+
         await initiatePayment({
           paymentSessionId: result.paymentSessionId,
           orderId: result.internalOrderId || result.cfOrderId,

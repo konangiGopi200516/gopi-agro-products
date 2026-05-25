@@ -61,13 +61,31 @@ export async function createCashfreeOrder(params: CreateOrderParams) {
 
   try {
     const response = await cashfree.PGCreateOrder(orderPayload);
-    console.log(`[Cashfree] ✅ Order created. Session ID: ${response.data.payment_session_id?.slice(0, 20)}...`);
-    return response.data;
+
+    // Log full response structure for debugging
+    console.log(`[Cashfree] ✅ Raw response keys:`, Object.keys(response || {}));
+    console.log(`[Cashfree] ✅ response.data keys:`, Object.keys(response?.data || {}));
+    console.log(`[Cashfree] ✅ payment_session_id present:`, !!response?.data?.payment_session_id);
+    console.log(`[Cashfree] ✅ cf_order_id:`, response?.data?.cf_order_id);
+    console.log(`[Cashfree] ✅ order_status:`, response?.data?.order_status);
+
+    const data = response?.data;
+
+    // Validate payment_session_id is present
+    if (!data || !data.payment_session_id) {
+      console.error(`[Cashfree] ❌ payment_session_id missing from response!`);
+      console.error(`[Cashfree] Full response.data:`, JSON.stringify(data, null, 2));
+      throw new Error("Cashfree returned a response without payment_session_id. Check API credentials and order payload.");
+    }
+
+    console.log(`[Cashfree] ✅ Order created. Session ID: ${data.payment_session_id.slice(0, 20)}...`);
+    return data;
   } catch (error: any) {
     // Log the FULL error response from Cashfree for debugging
     console.error(`[Cashfree] ❌ Order creation failed:`);
     console.error(`[Cashfree] Full error response:`, JSON.stringify(error?.response?.data, null, 2));
     console.error(`[Cashfree] Error message:`, error.message);
+    console.error(`[Cashfree] Error status:`, error?.response?.status);
 
     const cfMessage = error?.response?.data?.message || error.message || "Cashfree order creation failed";
     throw new Error(cfMessage);
