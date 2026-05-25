@@ -384,7 +384,7 @@ router.post(
   }
 );
 
-const sendEmailViaResend = async (to: string, subject: string, htmlContent: string) => {
+async function sendEmailViaResend(to: string, subject: string, htmlContent: string) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     throw new Error("RESEND_API_KEY environment variable is not configured.");
@@ -412,7 +412,7 @@ const sendEmailViaResend = async (to: string, subject: string, htmlContent: stri
   return await response.json();
 };
 
-const sendSystemEmail = async (to: string, subject: string, htmlContent: string) => {
+async function sendSystemEmail(to: string, subject: string, htmlContent: string) {
   const resendKey = process.env.RESEND_API_KEY;
   if (resendKey) {
     return await sendEmailViaResend(to, subject, htmlContent);
