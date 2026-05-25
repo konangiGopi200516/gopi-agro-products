@@ -332,38 +332,58 @@ const sendEmailViaResend = async (to: string, subject: string, htmlContent: stri
   return await response.json();
 };
 
+const sendSystemEmail = async (to: string, subject: string, htmlContent: string) => {
+  const resendKey = process.env.RESEND_API_KEY;
+  if (resendKey) {
+    return await sendEmailViaResend(to, subject, htmlContent);
+  }
+
+  const mailUser = process.env.MAIL_USER;
+  const mailPass = process.env.MAIL_PASS;
+  if (mailUser && mailPass) {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: mailUser,
+        pass: mailPass,
+      },
+    });
+
+    return await transporter.sendMail({
+      from: `"KisanMart" <${mailUser}>`,
+      to,
+      subject,
+      html: htmlContent,
+    });
+  }
+
+  throw new Error("No email provider configured (missing RESEND_API_KEY or MAIL_USER/MAIL_PASS)");
+};
+
 // GET /api/auth/test-email
 router.get("/test-email", async (req: express.Request, res: express.Response) => {
   try {
-    const apiKey = process.env.RESEND_API_KEY;
-    if (!apiKey) {
-      return res.status(400).json({ 
-        error: "Resend is not configured. RESEND_API_KEY environment variable is missing on Render." 
-      });
-    }
-
     const testRecipient = (req.query.to as string) || "gopikonangi8@gmail.com";
-    console.log(`Sending Resend test email to: ${testRecipient}...`);
+    console.log(`Sending test email to: ${testRecipient}...`);
 
-    const result = await sendEmailViaResend(
+    const result = await sendSystemEmail(
       testRecipient,
-      "Resend Connection Test - KisanMart",
+      "Email Connection Test - KisanMart",
       `
         <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px; max-width: 600px; margin: auto;">
-          <h2 style="color: #4CAF50; text-align: center;">🌱 KisanMart Resend Test</h2>
-          <p>This is a test email confirming that Resend HTTP API is successfully configured on your Render server!</p>
-          <p>Since this runs over standard HTTPS (port 443), it bypasses all Render SMTP port blocks perfectly!</p>
+          <h2 style="color: #4CAF50; text-align: center;">🌱 KisanMart Email Test</h2>
+          <p>This is a test email confirming that your email system is successfully configured on your server!</p>
           <hr style="border: 0; border-top: 1px solid #eee; margin-top: 20px;" />
           <p style="font-size: 12px; color: #888; text-align: center;">The KisanMart Team</p>
         </div>
       `
     );
 
-    res.json({ success: true, message: `Test email successfully sent via Resend to ${testRecipient}!`, result });
+    res.json({ success: true, message: `Test email successfully sent to ${testRecipient}!`, result });
   } catch (error: any) {
-    console.error("Resend test route failed:", error);
+    console.error("Test email route failed:", error);
     res.status(500).json({ 
-      error: error.message || "Failed to send test email via Resend", 
+      error: error.message || "Failed to send test email", 
       details: error.toString() 
     });
   }
@@ -377,29 +397,19 @@ router.post(
       const { email } = req.body;
       if (!email) return res.status(400).json({ error: "Email required" });
 
-      console.log(`Password reset requested for: ${email}`);
+      const normalizedEmail = email.trim().toLowerCase();
+      console.log(`Password reset requested for: ${normalizedEmail}`);
 
-      // Generate the password reset link programmatically using Firebase Admin SDK if possible
-      let oobCode = "";
-      const clientUrl = process.env.CLIENT_URL || "https://gopi-agro-products.vercel.app";
+      // Generate a JWT for password reset (valid for 15 minutes)
+      const oobCode = jwt.sign({ email: normalizedEmail }, JWT_SECRET, { expiresIn: '15m' });
+      
+      const clientUrl = process.env.CLIENT_URL || process.env.FRONTEND_URL || "https://gopi-agro-products.vercel.app";
+      const resetLink = `${clientUrl}/reset-password?oobCode=${oobCode}`;
+      console.log(`Programmatic reset link generated: ${resetLink}`);
 
       try {
-        if (admin && typeof admin.auth === "function" && admin.apps.length > 0) {
-          const firebaseLink = await admin.auth().generatePasswordResetLink(email);
-          const urlObj = new URL(firebaseLink);
-          oobCode = urlObj.searchParams.get("oobCode") || "";
-        }
-      } catch (adminError: any) {
-        console.warn("Failed to generate password reset link via Firebase Admin SDK:", adminError.message);
-      }
-
-      const hasResend = !!process.env.RESEND_API_KEY;
-      if (hasResend && oobCode) {
-        const resetLink = `${clientUrl}/reset-password?oobCode=${oobCode}`;
-        console.log(`Programmatic reset link generated: ${resetLink}`);
-
-        await sendEmailViaResend(
-          email,
+        await sendSystemEmail(
+          normalizedEmail,
           "Password Reset Request - KisanMart",
           `
             <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
@@ -409,35 +419,20 @@ router.post(
               <div style="text-align: center; margin: 30px 0;">
                 <a href="${resetLink}" style="background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; font-weight: bold; border-radius: 5px; display: inline-block;">Reset Password</a>
               </div>
-              <p>This password reset link will expire shortly.</p>
+              <p>This password reset link will expire in 15 minutes.</p>
               <p>If you did not request a password reset, please ignore this email.</p>
               <hr style="border: 0; border-top: 1px solid #eee; margin-top: 30px;" />
               <p style="font-size: 12px; color: #888; text-align: center;">The KisanMart Team</p>
             </div>
           `
         );
-        console.log(`Password reset email sent successfully via Resend API to ${email}`);
-      } else {
-        console.log(`Resend API not configured or Admin SDK skipped. Falling back to default Firebase sendOobCode...`);
-        const API_KEY = process.env.FIREBASE_API_KEY || "AIzaSyDE76TNNjVB_SM3jbpUS4ZwV1rzIZxRVVA";
-        const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${API_KEY}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            requestType: "PASSWORD_RESET",
-            email: email
-          })
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error("Firebase sendOobCode error:", errorData);
-        } else {
-          console.log(`Fallback default Firebase reset email queued successfully for ${email}`);
-        }
+        console.log(`Password reset email sent successfully to ${normalizedEmail}`);
+      } catch (emailError: any) {
+        console.error("Failed to send password reset email:", emailError.message || emailError);
+        // Do not fail the request to prevent email enumeration.
       }
 
-      await logAuthEvent(req, "FORGOT_PASSWORD", undefined, { email });
+      await logAuthEvent(req, "FORGOT_PASSWORD", undefined, { email: normalizedEmail });
       res.json({ success: true });
     } catch (error) {
       console.error("Forgot password handler error:", error);
@@ -457,41 +452,22 @@ router.post(
         return res.status(400).json({ error: "Invalid input" });
       }
 
-      const API_KEY = process.env.FIREBASE_API_KEY || "AIzaSyDE76TNNjVB_SM3jbpUS4ZwV1rzIZxRVVA";
-
-      // 1. First, verify the OOB code to get the user's email reliably.
-      const verifyResponse = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:resetPassword?key=${API_KEY}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ oobCode })
-      });
-
-      if (!verifyResponse.ok) {
-        const data = await verifyResponse.json();
-        throw new Error(data.error?.message || "Invalid or expired reset token");
+      // 1. Verify the JWT OOB code
+      let decoded: any;
+      try {
+        decoded = jwt.verify(oobCode, JWT_SECRET);
+      } catch (err) {
+        return res.status(400).json({ error: "Invalid or expired reset token" });
       }
 
-      const verifyData = await verifyResponse.json();
-      const resetEmail = verifyData.email;
-
+      const resetEmail = decoded.email;
       if (!resetEmail) {
-        throw new Error("Could not retrieve email for this reset token");
+        return res.status(400).json({ error: "Invalid token payload" });
       }
 
-      // 2. Actually reset the password in Firebase Auth
-      const resetResponse = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:resetPassword?key=${API_KEY}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ oobCode, newPassword })
-      });
-
-      if (!resetResponse.ok) {
-        const data = await resetResponse.json();
-        throw new Error(data.error?.message || "Failed to reset password");
-      }
-
-      // 3. Update the custom passwordHash in RTDB so the local login works
       const normalizedEmail = resetEmail.trim().toLowerCase();
+
+      // 2. Find the user in RTDB and update the passwordHash
       let usersSnapshot = await db.ref("users").orderByChild("email").equalTo(normalizedEmail).once("value");
       let users = usersSnapshot.val();
       
@@ -509,26 +485,25 @@ router.post(
         }
       }
       
-      if (users) {
-        const uid = Object.keys(users)[0];
-        const newPasswordHash = await bcrypt.hash(newPassword, 10);
-        
-        await db.ref(`users/${uid}`).update({
-          passwordHash: newPasswordHash,
-          updatedAt: new Date().toISOString()
-        });
-        console.log(`[RESET PASSWORD] Successfully updated RTDB passwordHash for: ${normalizedEmail} (uid: ${uid})`);
-      } else {
-        console.warn(`[RESET PASSWORD] Warning: Email ${normalizedEmail} not found in RTDB. Password was reset in Firebase Auth, but local DB could not be updated.`);
-        // Note: Even if not in RTDB, we still consider the reset successful from Firebase Auth perspective,
-        // but since login relies on RTDB, we might want to log this critical issue.
+      if (!users) {
+        return res.status(404).json({ error: "User account not found" });
       }
 
-      await logAuthEvent(req, "PASSWORD_RESET_SUCCESS", undefined, { oobCode, email: resetEmail });
-      res.json({ success: true, email: resetEmail });
+      const uid = Object.keys(users)[0];
+      const newPasswordHash = await bcrypt.hash(newPassword, 10);
+      
+      await db.ref(`users/${uid}`).update({
+        passwordHash: newPasswordHash,
+        updatedAt: new Date().toISOString()
+      });
+      
+      console.log(`[RESET PASSWORD] Successfully updated RTDB passwordHash for: ${normalizedEmail} (uid: ${uid})`);
+
+      await logAuthEvent(req, "PASSWORD_RESET_SUCCESS", uid, { email: normalizedEmail });
+      res.json({ success: true, email: normalizedEmail });
     } catch (error: any) {
       console.error("Reset password error:", error.message || error);
-      res.status(400).json({ error: error.message || "Invalid or expired reset token" });
+      res.status(500).json({ error: "Internal server error" });
     }
   }
 );
