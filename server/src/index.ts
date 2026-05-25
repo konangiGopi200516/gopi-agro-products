@@ -225,22 +225,34 @@ app.get("/api/products/:id", async (req, res) => {
 });
 
 app.post("/api/products", async (req, res) => {
-  const ref = db.ref('products').push();
-  const product = { ...req.body, createdAt: new Date().toISOString() };
-  await ref.set(product);
-  res.json({ id: ref.key, ...product });
+  try {
+    const ref = db.ref('products').push();
+    const product = { ...req.body, createdAt: new Date().toISOString() };
+    await ref.set(sanitizeObj(product));
+    res.json({ id: ref.key, ...product });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to add product" });
+  }
 });
 
 app.put("/api/products/:id", async (req, res) => {
-  const ref = db.ref(`products/${req.params.id}`);
-  await ref.update(req.body);
-  const snapshot = await ref.once('value');
-  res.json({ id: req.params.id, ...snapshot.val() });
+  try {
+    const ref = db.ref(`products/${req.params.id}`);
+    await ref.update(sanitizeObj(req.body));
+    const snapshot = await ref.once('value');
+    res.json({ id: req.params.id, ...snapshot.val() });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update product" });
+  }
 });
 
 app.delete("/api/products/:id", async (req, res) => {
-  await db.ref(`products/${req.params.id}`).update({ isActive: false });
-  res.json({ success: true });
+  try {
+    await db.ref(`products/${req.params.id}`).update({ isActive: false });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to delete product" });
+  }
 });
 
 // ==========================
@@ -297,17 +309,25 @@ app.get("/api/farmers", async (req, res) => {
 });
 
 app.post("/api/farmers", async (req, res) => {
-  const ref = db.ref('farmers').push();
-  const farmer = { ...req.body, id: ref.key, createdAt: new Date().toISOString() };
-  await ref.set(farmer);
-  res.json(farmer);
+  try {
+    const ref = db.ref('farmers').push();
+    const farmer = { ...req.body, id: ref.key, createdAt: new Date().toISOString() };
+    await ref.set(sanitizeObj(farmer));
+    res.json(farmer);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to add farmer" });
+  }
 });
 
 app.put("/api/farmers/:id", async (req, res) => {
-  const ref = db.ref(`farmers/${req.params.id}`);
-  await ref.update(req.body);
-  const snapshot = await ref.once('value');
-  res.json({ id: req.params.id, ...snapshot.val() });
+  try {
+    const ref = db.ref(`farmers/${req.params.id}`);
+    await ref.update(sanitizeObj(req.body));
+    const snapshot = await ref.once('value');
+    res.json({ id: req.params.id, ...snapshot.val() });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update farmer" });
+  }
 });
 
 app.delete("/api/farmers/:id", async (req, res) => {
