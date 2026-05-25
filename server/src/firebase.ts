@@ -39,7 +39,11 @@ class MockDbRef {
       if (!current[parts[i]]) current[parts[i]] = {};
       current = current[parts[i]];
     }
-    current[parts[parts.length - 1]] = value;
+    if (value === null) {
+      delete current[parts[parts.length - 1]];
+    } else {
+      current[parts[parts.length - 1]] = value;
+    }
     fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
   }
   async update(value: any) {
@@ -55,11 +59,17 @@ class MockDbRef {
     current[parts[parts.length - 1]] = { ...(current[parts[parts.length - 1]] || {}), ...value };
     fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
   }
-  async push(value: any) {
+  async remove() {
+    await this.set(null);
+  }
+  push(value?: any) {
     const pushId = 'push_' + Date.now().toString(36);
     const newRef = new MockDbRef(this.path + '/' + pushId);
-    await newRef.set(value);
-    return { key: pushId };
+    (newRef as any).key = pushId;
+    if (value !== undefined) {
+      return newRef.set(value).then(() => newRef);
+    }
+    return newRef;
   }
   
   _orderBy: string | null = null;

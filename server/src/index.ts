@@ -59,6 +59,20 @@ app.use("/api", paymentRouter);
 // Authentication Routes
 app.use("/api/auth", authRouter);
 
+// Remove undefined values before saving to Firebase to prevent crashes
+function sanitizeObj(obj: any): any {
+  if (obj === undefined) return null;
+  if (obj === null || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(sanitizeObj);
+  const newObj: any = {};
+  for (const key in obj) {
+    if (obj[key] !== undefined) {
+      newObj[key] = sanitizeObj(obj[key]);
+    }
+  }
+  return newObj;
+}
+
 // Order Schema Healing Formatter
 function formatOrder(key: string, data: any) {
   if (!data) return null;
@@ -147,7 +161,9 @@ app.get("/api/products", async (req, res) => {
       }
     }
     
-    let products = Object.keys(data).map(k => ({ id: k, ...data[k] }));
+    let products = Object.keys(data)
+      .map(k => data[k] ? { id: k, ...data[k] } : null)
+      .filter(Boolean);
 
     // Normalize farmer names: Each of the 15 farmers gets 2-4 products, rest are 'Local Farmer'
     const activeFarmers = [
@@ -271,7 +287,9 @@ app.get("/api/farmers", async (req, res) => {
       }
       return res.json(seedFarmers);
     }
-    const farmers = Object.keys(data).map(k => ({ id: k, ...data[k] }));
+    const farmers = Object.keys(data)
+      .map(k => data[k] ? { id: k, ...data[k] } : null)
+      .filter(Boolean);
     res.json(farmers);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch farmers" });
@@ -290,6 +308,16 @@ app.put("/api/farmers/:id", async (req, res) => {
   await ref.update(req.body);
   const snapshot = await ref.once('value');
   res.json({ id: req.params.id, ...snapshot.val() });
+});
+
+app.delete("/api/farmers/:id", async (req, res) => {
+  try {
+    const ref = db.ref(`farmers/${req.params.id}`);
+    await ref.remove();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to delete farmer" });
+  }
 });
 
 // ==========================
@@ -337,7 +365,7 @@ app.post("/api/orders", async (req, res) => {
     };
 
     const newOrderRef = db.ref('orders').push();
-    await newOrderRef.set(orderData);
+    await newOrderRef.set(sanitizeObj(orderData));
 
     // Reduce stock
     for (const item of items) {

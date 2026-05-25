@@ -75,6 +75,22 @@ const AdminFarmers = () => {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this farmer?")) return;
+    try {
+      const res = await fetch(`/api/farmers/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        showToast('Farmer deleted successfully', 'success');
+        fetchFarmers();
+      } else {
+        showToast('Failed to delete farmer', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Error deleting farmer', 'error');
+    }
+  };
+
   return (
     <Admin>
       <div className="animate-fade-up">
@@ -139,7 +155,8 @@ const AdminFarmers = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button onClick={() => openModal(farmer)} className="text-[var(--color-primary)] hover:underline text-sm font-semibold">Edit</button>
+                        <button onClick={() => openModal(farmer)} className="text-[var(--color-primary)] hover:underline text-sm font-semibold mr-3">Edit</button>
+                        <button onClick={() => handleDelete(farmer.id)} className="text-[var(--color-red)] hover:underline text-sm font-semibold">Delete</button>
                       </td>
                     </tr>
                   ))}
