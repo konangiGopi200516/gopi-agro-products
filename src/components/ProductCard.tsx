@@ -91,6 +91,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
           <div className="flex items-center justify-between">
             <div className="flex items-baseline gap-1">
               <span className="text-[20px] font-bold text-[var(--color-primary)]">₹{product.price}</span>
+              <span className="text-[13px] font-medium text-[var(--color-text-muted)]">/ {product.unit || 'kg'}</span>
             </div>
           </div>
 

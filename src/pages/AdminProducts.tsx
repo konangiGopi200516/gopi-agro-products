@@ -82,7 +82,7 @@ const AdminProducts = () => {
                     <td className="px-5 py-3"><img src={p.imageUrl} alt="" className="w-12 h-12 rounded-[var(--radius-sm)] object-cover border border-[var(--color-border)] bg-white" /></td>
                     <td className="px-5 py-3 font-medium text-[var(--color-text-primary)] text-[14px]">{p.name}</td>
                     <td className="px-5 py-3"><span className="bg-[var(--color-border)]/50 text-[var(--color-text-secondary)] px-2.5 py-1 rounded-[var(--radius-pill)] text-[11px] font-bold">{typeof p.category === 'string' ? p.category : p.category?.name}</span></td>
-                    <td className="px-5 py-3 font-bold text-[var(--color-primary)] text-[14px]">₹{p.price}</td>
+                    <td className="px-5 py-3 font-bold text-[var(--color-primary)] text-[14px]">₹{p.price} / {p.unit || 'kg'}</td>
                     <td className="px-5 py-3 font-medium text-[14px]">{p.stock}</td>
                     <td className="px-5 py-3 text-right">
                       <button onClick={()=>openDrawer(p)} className="p-2 text-[var(--color-primary)] hover:bg-[var(--color-primary-light)] rounded-full mr-1"><Edit2 size={16}/></button>

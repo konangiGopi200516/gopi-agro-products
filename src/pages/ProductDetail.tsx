@@ -90,7 +90,7 @@ const ProductDetail = () => {
             </div>
 
             <div className="flex items-end gap-3 mb-8">
-              <span className="text-[28px] font-bold text-[var(--color-primary)]">₹{product.price}</span>
+              <span className="text-[28px] font-bold text-[var(--color-primary)]">₹{product.price} <span className="text-[20px] font-medium text-[var(--color-text-muted)]">/ {product.unit || 'kg'}</span></span>
               <span className="text-[16px] text-[var(--color-text-muted)] line-through mb-1">₹{originalPrice}</span>
               <span className="bg-[var(--color-green-light)] text-[var(--color-green)] px-2 py-0.5 rounded text-[12px] font-bold mb-1.5">
                 Save ₹{saveAmount} ({savePercent}%)
