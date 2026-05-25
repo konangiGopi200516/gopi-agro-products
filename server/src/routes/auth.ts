@@ -118,25 +118,33 @@ router.post(
       return res.status(400).json({ error: "Email and password are required" });
     }
 
+    // Normalize email for consistent lookup
+    const normalizedEmail = email.trim().toLowerCase();
+
     try {
       // Find user by email
-      const usersSnapshot = await db.ref("users").orderByChild("email").equalTo(email).once("value");
+      console.log(`[LOGIN] Attempting login for: ${normalizedEmail}`);
+      const usersSnapshot = await db.ref("users").orderByChild("email").equalTo(normalizedEmail).once("value");
       const users = usersSnapshot.val();
 
       if (!users) {
-        await logAuthEvent(req, "LOGIN_FAILED", undefined, { email, error: "User not found" });
+        console.log(`[LOGIN] No user found for email: ${normalizedEmail}`);
+        await logAuthEvent(req, "LOGIN_FAILED", undefined, { email: normalizedEmail, error: "User not found" });
         return res.status(401).json({ error: "Invalid email or password" });
       }
 
       const uid = Object.keys(users)[0];
       const user = users[uid];
+      console.log(`[LOGIN] Found user: uid=${uid}, hasPasswordHash=${!!user.passwordHash}, verified=${user.verified}`);
 
       if (!user.passwordHash) {
-        return res.status(401).json({ error: "Invalid email or password" });
+        console.log(`[LOGIN] User ${uid} has no passwordHash (possibly Google-only account)`);
+        return res.status(401).json({ error: "This account uses Google Sign-In. Please use the Google button to log in." });
       }
 
       const isValid = await bcrypt.compare(password, user.passwordHash);
       if (!isValid) {
+        console.log(`[LOGIN] Password mismatch for user: ${uid}`);
         await logAuthEvent(req, "LOGIN_FAILED", uid, { error: "Invalid password" });
         return res.status(401).json({ error: "Invalid email or password" });
       }
@@ -152,6 +160,7 @@ router.post(
 
       const tokens = setAuthCookies(res, uid);
       await logAuthEvent(req, "LOGIN_SUCCESS", uid);
+      console.log(`[LOGIN] ✅ Login successful for user: ${uid}`);
 
       // Don't send password hash to client
       const { passwordHash, ...safeUser } = user;
@@ -174,9 +183,13 @@ router.post(
       return res.status(400).json({ error: "All fields are required and password must be at least 8 characters" });
     }
 
+    // Normalize email for consistent storage and lookup
+    const normalizedEmail = email.trim().toLowerCase();
+
     try {
       // Check if email already exists
-      const usersSnapshot = await db.ref("users").orderByChild("email").equalTo(email).once("value");
+      console.log(`[REGISTER] Attempting registration for: ${normalizedEmail}`);
+      const usersSnapshot = await db.ref("users").orderByChild("email").equalTo(normalizedEmail).once("value");
       if (usersSnapshot.exists()) {
         const users = usersSnapshot.val();
         const existingUid = Object.keys(users)[0];
@@ -202,8 +215,9 @@ router.post(
 
       const userDoc = {
         id: uid,
+        uid,
         name: fullName,
-        email,
+        email: normalizedEmail,
         phone: mobile,
         verified: true,
         passwordHash,
@@ -237,7 +251,7 @@ router.post(
     }
 
     try {
-      const email = profile.email;
+      const email = profile.email.trim().toLowerCase();
 
       // Check if user already exists by email
       const usersSnapshot = await db.ref("users").orderByChild("email").equalTo(email).once("value");
