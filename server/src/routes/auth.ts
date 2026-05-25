@@ -124,8 +124,22 @@ router.post(
     try {
       // Find user by email
       console.log(`[LOGIN] Attempting login for: ${normalizedEmail}`);
-      const usersSnapshot = await db.ref("users").orderByChild("email").equalTo(normalizedEmail).once("value");
-      const users = usersSnapshot.val();
+      let usersSnapshot = await db.ref("users").orderByChild("email").equalTo(normalizedEmail).once("value");
+      let users = usersSnapshot.val();
+
+      if (!users) {
+        // Fallback: search all users case-insensitively
+        const allUsersSnap = await db.ref("users").once("value");
+        const allUsers = allUsersSnap.val() || {};
+        const foundUid = Object.keys(allUsers).find(k => allUsers[k].email?.trim().toLowerCase() === normalizedEmail);
+        
+        if (foundUid) {
+          console.log(`[LOGIN] Found user via case-insensitive fallback: ${foundUid}. Auto-fixing email.`);
+          users = { [foundUid]: allUsers[foundUid] };
+          // Auto-fix the email in DB to prevent future issues
+          await db.ref(`users/${foundUid}`).update({ email: normalizedEmail });
+        }
+      }
 
       if (!users) {
         console.log(`[LOGIN] No user found for email: ${normalizedEmail}`);
@@ -266,7 +280,7 @@ router.post(
         userDoc = {
           id: uid,
           name: profile.name || "Google User",
-          email: profile.email,
+          email: email, // Use lowercased email
           avatar: profile.picture || "",
           verified: true,
           createdAt: new Date().toISOString()
@@ -445,43 +459,76 @@ router.post(
 
       const API_KEY = process.env.FIREBASE_API_KEY || "AIzaSyDE76TNNjVB_SM3jbpUS4ZwV1rzIZxRVVA";
 
-      const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:resetPassword?key=${API_KEY}`, {
+      // 1. First, verify the OOB code to get the user's email reliably.
+      const verifyResponse = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:resetPassword?key=${API_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ oobCode })
+      });
+
+      if (!verifyResponse.ok) {
+        const data = await verifyResponse.json();
+        throw new Error(data.error?.message || "Invalid or expired reset token");
+      }
+
+      const verifyData = await verifyResponse.json();
+      const resetEmail = verifyData.email;
+
+      if (!resetEmail) {
+        throw new Error("Could not retrieve email for this reset token");
+      }
+
+      // 2. Actually reset the password in Firebase Auth
+      const resetResponse = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:resetPassword?key=${API_KEY}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ oobCode, newPassword })
       });
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error.message);
+      if (!resetResponse.ok) {
+        const data = await resetResponse.json();
+        throw new Error(data.error?.message || "Failed to reset password");
       }
 
-      const responseData = await response.json();
-      const resetEmail = responseData.email;
-
-      if (resetEmail) {
-        // Also update the custom passwordHash in RTDB so the local login works
-        const normalizedEmail = resetEmail.trim().toLowerCase();
-        const usersSnapshot = await db.ref("users").orderByChild("email").equalTo(normalizedEmail).once("value");
+      // 3. Update the custom passwordHash in RTDB so the local login works
+      const normalizedEmail = resetEmail.trim().toLowerCase();
+      let usersSnapshot = await db.ref("users").orderByChild("email").equalTo(normalizedEmail).once("value");
+      let users = usersSnapshot.val();
+      
+      if (!users) {
+        // Fallback: search all users case-insensitively
+        const allUsersSnap = await db.ref("users").once("value");
+        const allUsers = allUsersSnap.val() || {};
+        const foundUid = Object.keys(allUsers).find(k => allUsers[k].email?.trim().toLowerCase() === normalizedEmail);
         
-        if (usersSnapshot.exists()) {
-          const users = usersSnapshot.val();
-          const uid = Object.keys(users)[0];
-          const newPasswordHash = await bcrypt.hash(newPassword, 10);
-          
-          await db.ref(`users/${uid}`).update({
-            passwordHash: newPasswordHash,
-            updatedAt: new Date().toISOString()
-          });
-          console.log(`[RESET PASSWORD] Successfully updated RTDB passwordHash for: ${normalizedEmail}`);
+        if (foundUid) {
+          console.log(`[RESET PASSWORD] Found user via case-insensitive fallback: ${foundUid}. Auto-fixing email.`);
+          users = { [foundUid]: allUsers[foundUid] };
+          // Auto-fix the email in DB
+          await db.ref(`users/${foundUid}`).update({ email: normalizedEmail });
         }
+      }
+      
+      if (users) {
+        const uid = Object.keys(users)[0];
+        const newPasswordHash = await bcrypt.hash(newPassword, 10);
+        
+        await db.ref(`users/${uid}`).update({
+          passwordHash: newPasswordHash,
+          updatedAt: new Date().toISOString()
+        });
+        console.log(`[RESET PASSWORD] Successfully updated RTDB passwordHash for: ${normalizedEmail} (uid: ${uid})`);
+      } else {
+        console.warn(`[RESET PASSWORD] Warning: Email ${normalizedEmail} not found in RTDB. Password was reset in Firebase Auth, but local DB could not be updated.`);
+        // Note: Even if not in RTDB, we still consider the reset successful from Firebase Auth perspective,
+        // but since login relies on RTDB, we might want to log this critical issue.
       }
 
       await logAuthEvent(req, "PASSWORD_RESET_SUCCESS", undefined, { oobCode, email: resetEmail });
-      res.json({ success: true });
+      res.json({ success: true, email: resetEmail });
     } catch (error: any) {
-      console.error("Reset password error:", error);
-      res.status(400).json({ error: "Invalid or expired reset token" });
+      console.error("Reset password error:", error.message || error);
+      res.status(400).json({ error: error.message || "Invalid or expired reset token" });
     }
   }
 );

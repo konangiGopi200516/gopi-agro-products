@@ -7,6 +7,17 @@ import { sendOrderConfirmationEmail, sendCODOTPEmail, sendPaymentFailedEmail } f
 
 const router = express.Router();
 
+const sanitizeForFirebase = (obj: any): any => {
+  if (obj === undefined) return null;
+  if (obj === null || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(sanitizeForFirebase);
+  const newObj: any = {};
+  for (const key in obj) {
+    if (obj[key] !== undefined) newObj[key] = sanitizeForFirebase(obj[key]);
+  }
+  return newObj;
+};
+
 // ─── CREATE CASHFREE ORDER ───────────────────────────────────────────────────
 router.post("/create-order", async (req: Request, res: Response) => {
   try {
@@ -87,7 +98,7 @@ router.post("/create-order", async (req: Request, res: Response) => {
       return res.status(502).json({ error: "Payment gateway returned an incomplete response. Please try again." });
     }
 
-    await db.ref(`orders/${cfOrderId}`).set({ ...orderData, cfOrderId, paymentSessionId });
+    await db.ref(`orders/${cfOrderId}`).set(sanitizeForFirebase({ ...orderData, cfOrderId, paymentSessionId }));
 
     console.log(`[create-order] ✅ Success: orderId=${internalOrderId}, cfOrderId=${cfOrderId}, sessionId=${paymentSessionId.slice(0, 20)}...`);
 
@@ -382,7 +393,7 @@ router.post("/upi/create", async (req: Request, res: Response) => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    await db.ref(`orders/${orderId}`).set(orderData);
+    await db.ref(`orders/${orderId}`).set(sanitizeForFirebase(orderData));
     // Deduct stock
     for (const item of cartItems) {
       const itemId = item.id || item.product?.id || item.productId;

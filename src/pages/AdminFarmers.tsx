@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Users, Phone, MapPin, Activity, CheckCircle, XCircle, X } from 'lucide-react';
 import Admin from './Admin';
 import { API_BASE } from '../services/api';
+import { useToast } from '../components/ToastProvider';
 
 const AdminFarmers = () => {
+  const { showToast } = useToast();
   const [farmers, setFarmers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -61,11 +63,15 @@ const AdminFarmers = () => {
         body: JSON.stringify(formData)
       });
       if (res.ok) {
+        showToast(`Farmer ${isEdit ? 'updated' : 'added'} successfully`, 'success');
         closeModal();
         fetchFarmers();
+      } else {
+        showToast('Failed to save farmer', 'error');
       }
     } catch (err) {
       console.error(err);
+      showToast('Error saving farmer', 'error');
     }
   };
 

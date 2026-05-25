@@ -103,7 +103,7 @@ const AdminProducts = () => {
                 <h2 className="font-display font-bold text-[20px] text-[var(--color-text-primary)]">{editingProduct ? 'Edit Product' : 'Add Product'}</h2>
                 <button onClick={closeDrawer} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"><X size={24}/></button>
               </div>
-              <form onSubmit={handleSave} className="flex-1 overflow-y-auto p-6 space-y-5">
+              <form id="product-form" onSubmit={handleSave} className="flex-1 overflow-y-auto p-6 space-y-5">
                 <div><label className="block text-[13px] font-bold text-[var(--color-text-secondary)] mb-1">Name</label><input required type="text" value={formData.name} onChange={e=>setFormData({...formData, name: e.target.value})} className="w-full h-11 px-3 border border-[var(--color-border)] rounded-[var(--radius-sm)] outline-none focus:border-[var(--color-primary)]"/></div>
                 <div className="grid grid-cols-2 gap-4">
                   <div><label className="block text-[13px] font-bold text-[var(--color-text-secondary)] mb-1">Price (₹)</label><input required type="number" value={formData.price} onChange={e=>setFormData({...formData, price: +e.target.value})} className="w-full h-11 px-3 border border-[var(--color-border)] rounded-[var(--radius-sm)] outline-none focus:border-[var(--color-primary)]"/></div>
@@ -119,7 +119,7 @@ const AdminProducts = () => {
               </form>
               <div className="p-5 border-t border-[var(--color-border)] bg-[var(--color-surface)] flex gap-3">
                 <button onClick={closeDrawer} type="button" className="flex-1 bg-white border border-[var(--color-border)] text-[var(--color-text-primary)] h-11 rounded-[var(--radius-sm)] font-bold">Cancel</button>
-                <button onClick={handleSave} type="button" className="flex-1 bg-[var(--color-primary)] text-white h-11 rounded-[var(--radius-sm)] font-bold">Save</button>
+                <button type="submit" form="product-form" className="flex-1 bg-[var(--color-primary)] text-white h-11 rounded-[var(--radius-sm)] font-bold">Save</button>
               </div>
             </div>
           </div>
