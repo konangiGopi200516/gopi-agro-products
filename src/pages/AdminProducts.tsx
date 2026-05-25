@@ -44,7 +44,7 @@ const AdminProducts = () => {
     }
   };
 
-  const filtered = products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filtered = products.filter(p => (p.name || '').toLowerCase().includes((searchTerm || '').toLowerCase()));
 
   return (
     <AdminLayout>

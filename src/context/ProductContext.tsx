@@ -94,11 +94,11 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     }
 
     if (searchQuery) {
-      const lowerSearch = searchQuery.toLowerCase();
+      const lowerSearch = (searchQuery || '').toLowerCase();
       result = result.filter(
-        p => p.name.toLowerCase().includes(lowerSearch) ||
-             p.description.toLowerCase().includes(lowerSearch) ||
-             p.farmerName.toLowerCase().includes(lowerSearch)
+        p => (p.name || '').toLowerCase().includes(lowerSearch) ||
+             (p.description || '').toLowerCase().includes(lowerSearch) ||
+             (p.farmerName || '').toLowerCase().includes(lowerSearch)
       );
     }
 

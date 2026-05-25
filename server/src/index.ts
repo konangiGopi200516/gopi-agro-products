@@ -163,7 +163,7 @@ app.get("/api/products", async (req, res) => {
     
     let products = Object.keys(data)
       .map(k => data[k] ? { id: k, ...data[k] } : null)
-      .filter(Boolean);
+      .filter(p => p && p.name && p.name.trim() !== "");
 
     // Normalize farmer names: Each of the 15 farmers gets 2-4 products, rest are 'Local Farmer'
     const activeFarmers = [
